@@ -12,17 +12,14 @@ app.use(express.json());
 // เชื่อมต่อ MongoDB
 connectDB();
 
-app.get("/", (req, res) => {
-  res.send(`
-      <h1>Welcome to the API!</h1>
-      <p>Version: 1.0.0</p>
-      <p>Endpoints:</p>
-      <ul>
-        <li>GET /api/products - Get all products</li>
-        <li>POST /api/products - Create a new product</li>
-      </ul>
-      <p>Documentation: <a href="http://wnimqo.easypanel.host:3000/docs">here</a></p>
-    `);
+app.get("/check", (req, res) => {
+  console.log("Response  check");
+  res.status(200).json({
+    status: 200,
+    success: true,
+    data: "API v 1.0 is running",
+  });
+  return;
 });
 
 // เริ่มเซิร์ฟเวอร์
