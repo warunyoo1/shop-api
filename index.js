@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const config = require("./config/config");
+const routes = require('./routes');
 
 const app = express();
 
@@ -21,6 +22,8 @@ app.get("/check", (req, res) => {
   });
   return;
 });
+
+app.use('/api', routes);
 
 // เริ่มเซิร์ฟเวอร์
 app.listen(config.port, () =>
