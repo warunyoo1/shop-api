@@ -12,11 +12,9 @@ exports.loginUser = async (username, password, ip, userAgent) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return { success: false, message: "Invalid credentials" };
 
-  const existingRefreshToken = await RefreshToken.findOne({ userId: user._id });
-  if (existingRefreshToken) {
-    throw new Error(
-      "You are already logged in. Please logout or refresh your token."
-    );
+  const checkResult = await exports.checkExistingRefreshToken(user._id);
+  if (!checkResult.success) {
+    return { success: false, message: checkResult.message };
   }
 
   const token = jwt.sign(
@@ -100,8 +98,9 @@ exports.checkExistingRefreshToken = async (userId) => {
 
     if (existingRefreshToken) {
       const currentTime = Date.now();
+      const expiresAtTime = new Date(existingRefreshToken.expiresAt).getTime();
 
-      if (existingRefreshToken.expiresAt <= currentTime) {
+      if (expiresAtTime <= currentTime) {
         await RefreshToken.deleteOne({ userId });
         return { success: true };
       }
@@ -113,10 +112,8 @@ exports.checkExistingRefreshToken = async (userId) => {
       };
     }
 
-    console.log("No existing refresh token found for userId:", userId);
     return { success: true };
   } catch (err) {
-    console.error("Error checking refresh token:", err);
     return { success: false, message: err.message };
   }
 };

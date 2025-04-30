@@ -33,6 +33,26 @@ exports.login = async (req, res) => {
     }
 
     const result = await loginUser(username, password, ip, userAgent);
+
+    if (result.success === false) {
+      await logAction("login_failed", {
+        tag: "login",
+        endpoint: fullUrl,
+        method: "POST",
+        data: {
+          error: result.message,
+          input: req.body,
+          referrer,
+          ip,
+        },
+      });
+      return res.status(400).json({
+        code: 400,
+        status: "error",
+        message: result.message,
+      });
+    }
+
     if (!result || result.error) {
       await logAction("login_failed", {
         tag: "login",
