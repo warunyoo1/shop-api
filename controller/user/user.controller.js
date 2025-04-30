@@ -21,6 +21,7 @@ exports.register = async (req, res) => {
         tag: "register",
         userId,
         endpoint: fullUrl,
+        method: "POST",
         data: { error: error.details[0].message, input: body, referrer, ip },
       });
       return res.status(400).json({ error: error.details[0].message });
@@ -32,6 +33,7 @@ exports.register = async (req, res) => {
         tag: "register",
         userId,
         endpoint: fullUrl,
+        method: "POST",
         data: {
           error: result?.error || "User registration failed",
           input: body,
@@ -51,6 +53,7 @@ exports.register = async (req, res) => {
       tag: "register",
       userId: user._id,
       endpoint: fullUrl,
+      method: "POST",
       data: {
         user: { id: user._id, username: user.username, email: user.email, ip },
         referrer,
@@ -68,6 +71,7 @@ exports.register = async (req, res) => {
       tag: "register",
       userId,
       endpoint: fullUrl,
+      method: "POST",
       data: { error: err.message, stack: err.stack, referrer },
     });
 

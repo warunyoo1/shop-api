@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const userRoutes = require("./user.routes");
-
+const authRoutes = require("../controller/auth/auth.controller");
 
 router.get("/check", (req, res) => {
   console.log("Response  check");
@@ -13,6 +13,8 @@ router.get("/check", (req, res) => {
   });
   return;
 });
+
+router.post("/login", authRoutes.login);
 router.use("/users", userRoutes);
 
 module.exports = router;

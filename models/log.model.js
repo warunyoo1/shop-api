@@ -9,6 +9,7 @@ const logSchema = new mongoose.Schema({
     default: null,
   },
   endpoint: String,
+  method: String,
   data: Object,
   createdAt: {
     type: Date,
