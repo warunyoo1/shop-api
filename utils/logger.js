@@ -2,7 +2,8 @@ const Log = require("../models/log.model");
 
 exports.logAction = (
   action,
-  { tag = null, userId = null, endpoint = "", data = {} }
+  { tag = null, userId = null, endpoint = "", data = {}, ip = null }
 ) => {
-  return Log.create({ action, tag, userId, endpoint, data });
+    const logData = { action, tag, userId, endpoint, data, ip };
+    return Log.create(logData);
 };

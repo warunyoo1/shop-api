@@ -1,10 +1,16 @@
 const authService = require("../../service/user/user.service");
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
+const { normalizeIP } = require("../../utils/utils");
 
 exports.register = async (req, res) => {
   const userId = req.user?._id || null;
   const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+  const ipRaw =
+    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    req.connection.remoteAddress ||
+    req.ip;
+  const ip = normalizeIP(ipRaw);
   const referrer = req.get("Referer") || null;
   const body = req.body;
 
@@ -15,7 +21,7 @@ exports.register = async (req, res) => {
         tag: "register",
         userId,
         endpoint: fullUrl,
-        data: { error: error.details[0].message, input: body, referrer },
+        data: { error: error.details[0].message, input: body, referrer, ip },
       });
       return res.status(400).json({ error: error.details[0].message });
     }
@@ -30,6 +36,7 @@ exports.register = async (req, res) => {
           error: result?.error || "User registration failed",
           input: body,
           referrer,
+          ip,
         },
       });
       return res.status(400).json({
@@ -45,7 +52,7 @@ exports.register = async (req, res) => {
       userId: user._id,
       endpoint: fullUrl,
       data: {
-        user: { id: user._id, username: user.username, email: user.email },
+        user: { id: user._id, username: user.username, email: user.email, ip },
         referrer,
       },
     });
