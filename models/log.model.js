@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const logSchema = new mongoose.Schema({
+  tag: { type: String },
   action: String,
   userId: {
     type: mongoose.Schema.Types.ObjectId,

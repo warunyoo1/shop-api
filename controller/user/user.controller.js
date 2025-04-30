@@ -12,6 +12,7 @@ exports.register = async (req, res) => {
     const { error } = validate.RegisterValidate(body);
     if (error) {
       await logAction("register_failed_validation", {
+        tag: "register",
         userId,
         endpoint: fullUrl,
         data: { error: error.details[0].message, input: body, referrer },
@@ -22,6 +23,7 @@ exports.register = async (req, res) => {
     const result = await authService.registerUser(body);
     if (!result || result.error) {
       await logAction("register_failed", {
+        tag: "register",
         userId,
         endpoint: fullUrl,
         data: {
@@ -39,6 +41,7 @@ exports.register = async (req, res) => {
 
     const { user } = result;
     await logAction("register_success", {
+      tag: "register",
       userId: user._id,
       endpoint: fullUrl,
       data: {
@@ -55,6 +58,7 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     await logAction("register_error", {
+      tag: "register",
       userId,
       endpoint: fullUrl,
       data: { error: err.message, stack: err.stack, referrer },
