@@ -1,4 +1,9 @@
-const { loginUser } = require("../../service/auth/auth.service");
+const {
+  loginUser,
+  handleRefreshToken,
+  handleLogout,
+  checkExistingRefreshToken,
+} = require("../../service/auth/auth.service");
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
@@ -11,6 +16,7 @@ exports.login = async (req, res) => {
   const ip = normalizeIP(ipRaw);
   const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
   const referrer = req.get("Referer") || null;
+  const userAgent = req.get("User-Agent");
   const { username, password } = req.body;
 
   try {
@@ -26,7 +32,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const result = await loginUser(username, password);
+    const result = await loginUser(username, password, ip, userAgent);
     if (!result || result.error) {
       await logAction("login_failed", {
         tag: "login",
@@ -47,6 +53,7 @@ exports.login = async (req, res) => {
     }
 
     const { user, token } = result;
+
     await logAction("login_success", {
       tag: "login",
       method: "POST",
@@ -64,6 +71,7 @@ exports.login = async (req, res) => {
       status: "success",
       message: "Login successful",
       token,
+      refreshToken: result.refreshToken,
     });
   } catch (err) {
     await logAction("login_error", {
@@ -79,5 +87,40 @@ exports.login = async (req, res) => {
       status: "error",
       error: err.message,
     });
+  }
+};
+
+exports.refreshToken = async (req, res) => {
+  const authorizationHeader = req.headers["authorization"];
+  if (!authorizationHeader)
+    return res.status(400).json({ error: "Missing authorization header" });
+
+  const token = authorizationHeader.split(" ")[1];
+  if (!token) return res.status(400).json({ error: "Missing token" });
+
+  try {
+    const newToken = await handleRefreshToken(token);
+
+    return res.status(200).json({ token: newToken });
+  } catch (err) {
+    return res
+      .status(403)
+      .json({ error: err.message || "Invalid or expired token" });
+  }
+};
+
+exports.logout = async (req, res) => {
+  const authorizationHeader = req.headers["authorization"];
+  if (!authorizationHeader)
+    return res.status(400).json({ error: "Missing authorization header" });
+
+  const token = authorizationHeader.split(" ")[1];
+  if (!token) return res.status(400).json({ error: "Missing token" });
+
+  try {
+    await handleLogout(token);
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to logout" });
   }
 };

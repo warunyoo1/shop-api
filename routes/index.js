@@ -15,6 +15,8 @@ router.get("/check", (req, res) => {
 });
 
 router.post("/login", authRoutes.login);
+router.post("/refreshToken", authRoutes.refreshToken);
+router.post("/logout", authRoutes.logout);
 router.use("/users", userRoutes);
 
 module.exports = router;
