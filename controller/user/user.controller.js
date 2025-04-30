@@ -1,22 +1,52 @@
 const authService = require("../../service/user/user.service");
 const validate = require("../../validators/Validator");
+const { logAction } = require("../../utils/logger");
 
 exports.register = async (req, res) => {
-  try {
-    const { error } = validate.RegisterValidate(req.body);
+  const userId = req.user?._id || null;
+  const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+  const referrer = req.get("Referer") || null;
+  const body = req.body;
 
+  try {
+    const { error } = validate.RegisterValidate(body);
     if (error) {
+      await logAction("register_failed_validation", {
+        userId,
+        endpoint: fullUrl,
+        data: { error: error.details[0].message, input: body, referrer },
+      });
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const user = await authService.registerUser(req.body);
-    if (!user || user.error) {
+    const result = await authService.registerUser(body);
+    if (!result || result.error) {
+      await logAction("register_failed", {
+        userId,
+        endpoint: fullUrl,
+        data: {
+          error: result?.error || "User registration failed",
+          input: body,
+          referrer,
+        },
+      });
       return res.status(400).json({
         code: 400,
         status: "error",
-        message: user ? user.error : "User registration failed",
+        message: result?.error || "User registration failed",
       });
     }
+
+    const { user } = result;
+    await logAction("register_success", {
+      userId: user._id,
+      endpoint: fullUrl,
+      data: {
+        user: { id: user._id, username: user.username, email: user.email },
+        referrer,
+      },
+    });
+
     return res.status(201).json({
       code: 201,
       status: "success",
@@ -24,6 +54,12 @@ exports.register = async (req, res) => {
       user,
     });
   } catch (err) {
+    await logAction("register_error", {
+      userId,
+      endpoint: fullUrl,
+      data: { error: err.message, stack: err.stack, referrer },
+    });
+
     return res.status(500).json({
       code: 500,
       message: "Internal server error",
