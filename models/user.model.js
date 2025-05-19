@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String },
   address: { type: String, default: "" },
   profilePicture: { type: String, default: "" },
+  role: { type: String, default: "user" },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

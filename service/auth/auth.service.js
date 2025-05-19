@@ -23,6 +23,7 @@ exports.loginUser = async (username, password, ip, userAgent) => {
       username: user.username,
       email: user.email,
       phone: user.phone,
+      role: user.role,
       address: user.address,
     },
     process.env.JWT_SECRET,
@@ -37,6 +38,7 @@ exports.loginUser = async (username, password, ip, userAgent) => {
       username: user.username,
       email: user.email,
       phone: user.phone,
+      role: user.role,
       address: user.address,
     },
     process.env.JWT_REFRESH_SECRET,
@@ -73,6 +75,7 @@ exports.handleRefreshToken = async (refreshToken) => {
       email: payload.email,
       phone: payload.phone,
       address: payload.address,
+      role: payload.role,
     },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRATION || "1h" }
