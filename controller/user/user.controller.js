@@ -2,7 +2,7 @@ const authService = require("../../service/user/user.service");
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
-
+ 
 exports.register = async (req, res) => {
   const userId = req.user?._id || null;
   const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;

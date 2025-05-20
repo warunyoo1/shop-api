@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-
+ 
 const superadminSchema = new mongoose.Schema({
   username: { type: String },
   email: { type: String },

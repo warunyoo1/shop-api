@@ -24,3 +24,40 @@ exports.loginValidate = (data) => {
 
   return schema.validate(data);
 };
+
+
+// vaild superadmin
+exports.superadminValidate = (data) => {
+  const schema = Joi.object({
+    id : Joi.string().allow(null).optional().optional(),
+    username: Joi.string().min(5).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().allow(null).optional(),
+    phone: Joi.string().min(10).max(15).required(),
+    address: Joi.string().allow(null).optional(),
+  });
+
+  return schema.validate(data);
+};
+
+// vaild admin
+exports.adminValidate = (data) => {
+  const schema = Joi.object({
+    id : Joi.string().allow(null).optional().optional(),
+    username: Joi.string().min(5).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().allow(null).optional(),
+    phone: Joi.string().min(10).max(15).required(),
+    address: Joi.string().allow(null).optional(),
+    // เป็น array ห้ามว่าง
+    role: Joi.array().required().min(1).messages({
+      "array.base": "Role must be an array",
+      "array.min": "Role must contain at least 1 item",
+      "array.empty": "Role cannot be empty",
+    }),
+  });
+
+  return schema.validate(data);
+};
+
+
