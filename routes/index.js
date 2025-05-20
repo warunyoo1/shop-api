@@ -5,6 +5,7 @@ const userRoutes = require("./user.routes");
 const authRoutes = require("../controller/auth/auth.controller");
 const superadminRoutes = require("./superadmin.routes");
 const adminRoutes = require("./admin.routes");
+const lotteryRoutes = require("./lottery.routes");
 
 router.get("/check", (req, res) => {
   console.log("Response  check");
@@ -22,9 +23,11 @@ router.post("/refreshToken", authRoutes.refreshToken);
 router.post("/logout", authRoutes.logout);
 router.use("/users", userRoutes);
 
-
 // ส่วน admin
 router.use("/superadmin", superadminRoutes);
 router.use("/admin", adminRoutes);
+
+// ส่วน lottery
+router.use("/lottery", lotteryRoutes);
 
 module.exports = router;
