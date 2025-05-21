@@ -1,4 +1,3 @@
-const e = require("express");
 const lotteryService = require("../../service/lottery/lottery.service");
 
 exports.createLottery = async (req, res) => {

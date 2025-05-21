@@ -1,6 +1,6 @@
-const e = require("express");
 const LotteryCategory = require("../../models/lotteryCategory.model");
 const LotteryItem = require("../../models/lotteryItem.model");
+const huay = require("../../models/huay.model");
 
 exports.createLotteryCategory = async function (data) {
   const newLotteryCategory = new LotteryCategory(data);
@@ -20,6 +20,7 @@ exports.deleteLotteryCategory = async function (categoryId) {
     }
 
     await LotteryItem.deleteMany({ category: categoryId });
+    await huay.deleteMany({ lottery_category_id: categoryId });
 
     return deletedCategory;
   } catch (error) {
