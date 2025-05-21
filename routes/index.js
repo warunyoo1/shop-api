@@ -6,7 +6,7 @@ const authRoutes = require("../controller/auth/auth.controller");
 const superadminRoutes = require("./superadmin.routes");
 const adminRoutes = require("./admin.routes");
 const lotteryRoutes = require("./lottery.routes");
-
+const authadminRoutes = require("./authadmin.routes");
 router.get("/check", (req, res) => {
   console.log("Response  check");
   res.status(200).json({
@@ -26,6 +26,7 @@ router.use("/users", userRoutes);
 // ส่วน admin
 router.use("/superadmin", superadminRoutes);
 router.use("/admin", adminRoutes);
+router.use("/authadmin", authadminRoutes);
 
 // ส่วน lottery
 router.use("/lottery", lotteryRoutes);

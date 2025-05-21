@@ -1,12 +1,16 @@
 const superadmin = require("../../models/superadmin.model");
-
+const admin = require("../../models/admin.model");
 exports.createSuperadmin = async ({ username, email, password, phone, address}) => {
     //เช็คว่ามี username และ อีเมล์ซ้ำไหม
     const existingSuperadmin = await superadmin.findOne({
         $or: [{ username }, { email }]
     });
 
-    if (existingSuperadmin) {
+    const existingAdmin = await admin.findOne({
+        $or: [{ username }, { email }]
+    });
+
+    if (existingSuperadmin || existingAdmin) {
         return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
     }
 
@@ -45,7 +49,7 @@ exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
             .sort({ createdAt: -1 }),
         superadmin.countDocuments(query)
     ]);
-
+ 
     return {
         data: superadmins,
         pagination: {
@@ -78,11 +82,17 @@ exports.updateSuperadmin = async (id, updateData) => {
             $or: [
                 { username: updateData.username },
                 { email: updateData.email }
-            ],
-            _id: { $ne: id }
+            ]
         });
 
-        if (existingSuperadmin) {
+        const existingAdmin = await admin.findOne({
+            $or: [
+                { username: updateData.username },
+                { email: updateData.email }
+            ]
+        });
+
+        if (existingSuperadmin || existingAdmin) {
             return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
         }
     }

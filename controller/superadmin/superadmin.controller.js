@@ -2,7 +2,7 @@ const validate = require("../../validators/Validator");
 const superadminService = require("../../service/superadmin/superadmin.service");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
-//create superadmin
+//create superadmin 
 exports.createSuperadmin = async (req, res) => {
     const userId = req.user?._id || null;
     const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
@@ -40,13 +40,13 @@ exports.createSuperadmin = async (req, res) => {
         }
 
         const {superadmin} = result;
-        await logAction("create_superadmin_success", {
-            tag: "create_superadmin",
-            userId,
-            endpoint: fullUrl,
-            method: "POST",
-            data: { superadmin, referrer, ip },
-        });
+        // await logAction("create_superadmin_success", {
+        //     tag: "create_superadmin",
+        //     userId,
+        //     endpoint: fullUrl,
+        //     method: "POST",
+        //     data: { superadmin, referrer, ip },
+        // });
 
         return res.status(201).json({
             code: 201,

@@ -3,7 +3,7 @@ const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
 const adminService = require("../../service/admin/admin.service");
 
-
+ 
 // create admin
 exports.createAdmin = async (req, res) => {
     const userId = req.user?._id || null;
@@ -55,14 +55,14 @@ exports.createAdmin = async (req, res) => {
             });
         }
 
-        await logAction("create_admin_success", {
-            tag: "create_admin",
-            userId,
-            fullUrl,
-            ip,
-            referrer,
-            data: result.data
-        });
+        // await logAction("create_admin_success", {
+        //     tag: "create_admin",
+        //     userId,
+        //     fullUrl,
+        //     ip,
+        //     referrer,
+        //     data: result.data
+        // });
 
         return res.status(201).json({
             status: "success",
@@ -99,20 +99,20 @@ exports.getAdmin = async (req, res) => {
     try {
         const { page, perPage, search } = req.query;
         
-        const result = await adminService.getSuperadmin({
+        const result = await adminService.getadmin({
             page: parseInt(page) || 1,
             perPage: parseInt(perPage) || 10,
             search
         });
 
-        await logAction("get_admin_success", {
-            tag: "get_admin",
-            userId,
-            fullUrl,
-            ip,
-            referrer,
-            query: req.query
-        });
+        // await logAction("get_admin_success", {
+        //     tag: "get_admin",
+        //     userId,
+        //     fullUrl,
+        //     ip,
+        //     referrer,
+        //     query: req.query
+        // });
 
         return res.status(200).json({
             status: "success",
@@ -163,7 +163,7 @@ exports.getAdminById = async (req, res) => {
             });
         }
 
-        const result = await adminService.getSuperadminById(id);
+        const result = await adminService.getadminById(id);
         if(result.error) {
             await logAction("get_admin_by_id_error", {
                 tag: "get_admin_by_id",
@@ -179,14 +179,14 @@ exports.getAdminById = async (req, res) => {
             });
         }
 
-        await logAction("get_admin_by_id_success", {
-            tag: "get_admin_by_id",
-            userId,
-            fullUrl,
-            ip,
-            referrer,
-            id
-        });
+        // await logAction("get_admin_by_id_success", {
+        //     tag: "get_admin_by_id",
+        //     userId,
+        //     fullUrl,
+        //     ip,
+        //     referrer,
+        //     id
+        // });
 
         return res.status(200).json({
             status: "success",
@@ -254,7 +254,7 @@ exports.updateAdmin = async (req, res) => {
             });
         }
 
-        const result = await adminService.updateSuperadmin(id, body);
+        const result = await adminService.updateadmin(id, body);
         if(result.error) {
             await logAction("update_admin_failed", {
                 tag: "update_admin",
@@ -270,14 +270,14 @@ exports.updateAdmin = async (req, res) => {
             });
         }
 
-        await logAction("update_admin_success", {
-            tag: "update_admin",
-            userId,
-            fullUrl,
-            ip,
-            referrer,
-            data: result.data
-        });
+        // await logAction("update_admin_success", {
+        //     tag: "update_admin",
+        //     userId,
+        //     fullUrl,
+        //     ip,
+        //     referrer,
+        //     data: result.data
+        // });
 
         return res.status(200).json({
             status: "success",
@@ -328,7 +328,7 @@ exports.deleteAdmin = async (req, res) => {
             });
         }
 
-        const result = await adminService.deleteSuperadmin(id);
+        const result = await adminService.deleteadmin(id);
         if(result.error) {
             await logAction("delete_admin_failed", {
                 tag: "delete_admin",
@@ -344,14 +344,14 @@ exports.deleteAdmin = async (req, res) => {
             });
         }
 
-        await logAction("delete_admin_success", {
-            tag: "delete_admin",
-            userId,
-            fullUrl,
-            ip,
-            referrer,
-            id
-        });
+        // await logAction("delete_admin_success", {
+        //     tag: "delete_admin",
+        //     userId,
+        //     fullUrl,
+        //     ip,
+        //     referrer,
+        //     id
+        // });
 
         return res.status(200).json({
             status: "success",

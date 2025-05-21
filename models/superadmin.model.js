@@ -9,6 +9,7 @@ const superadminSchema = new mongoose.Schema({
   address: { type: String, default: "" },
   profilePicture: { type: String, default: "" },
   role: { type: String, default:'superadmin'},
+  active: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -19,4 +20,13 @@ superadminSchema.pre("save", async function (next) {
   next();
 });
 
+superadminSchema.pre("findOneAndUpdate", async function (next) {
+  const update = this.getUpdate();
+  if (update && update.$set && update.$set.password) {
+    update.$set.password = await bcrypt.hash(update.$set.password, 10);
+  }
+  next();
+});
+
 module.exports = mongoose.model("superadmin", superadminSchema);
+ 

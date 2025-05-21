@@ -1,5 +1,5 @@
 const admin = require("../../models/admin.model");
-
+const superadmin = require("../../models/superadmin.model");
 
 // create admin
 exports.createAdmin = async (username, email, password, phone, address,role) => {
@@ -7,7 +7,12 @@ exports.createAdmin = async (username, email, password, phone, address,role) => 
     const existingAdmin = await admin.findOne({
         $or: [{ username }, { email }]
     });
-    if(existingAdmin){
+
+    const existingSuperadmin = await superadmin.findOne({
+        $or: [{ username }, { email }]
+    });
+
+    if(existingAdmin || existingSuperadmin){
         return {error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว"};
     }
     const newAdmin = new admin({username, email, password, phone, address,role});
@@ -16,7 +21,7 @@ exports.createAdmin = async (username, email, password, phone, address,role) => 
 };
 
 // get admin
-exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
+exports.getadmin = async ({ page = 1, perPage = 10, search }) => {
     const query = {};
     if(search){
         query.$or = [
@@ -28,7 +33,7 @@ exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
 
     const [admins, total] = await Promise.all([
         admin.find(query)
-        .select('-password')
+         .select('-password')
         .skip((page - 1) * perPage)
         .limit(perPage)
         .sort({createdAt: -1}),
@@ -48,7 +53,7 @@ exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
 
 
 // get admin by id
-exports.getSuperadminById = async (id) => {
+exports.getadminById = async (id) => {
     if(!id){
         return {error: "Id is required"};
     }
@@ -61,7 +66,7 @@ exports.getSuperadminById = async (id) => {
 
 
 // update admin
-exports.updateSuperadmin = async (id, updateData) => {
+exports.updateadmin = async (id, updateData) => {
     if (!id) {
         return { error: "กรุณาระบุ ID ของ admin" };
     }
@@ -76,7 +81,14 @@ exports.updateSuperadmin = async (id, updateData) => {
             _id: { $ne: id }
         });
 
-        if (existingAdmin) {
+        const existingSuperadmin = await superadmin.findOne({
+            $or: [
+                { username: updateData.username },
+                { email: updateData.email }
+            ]
+        });
+
+        if (existingAdmin || existingSuperadmin) {
             return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
         }
     }
@@ -88,7 +100,7 @@ exports.updateSuperadmin = async (id, updateData) => {
         id,
         { $set: updateData },
         { new: true }
-    ).select('-password');
+    ).select('-password'); 
 
     if (!result) {
         return { error: "ไม่พบ admin ที่ต้องการแก้ไข" };
@@ -99,7 +111,7 @@ exports.updateSuperadmin = async (id, updateData) => {
 
 
 // delete admin
-exports.deleteSuperadmin = async (id) => {
+exports.deleteadmin = async (id) => {
     if (!id) {
         return { error: "กรุณาระบุ ID ของ admin" };
     }
