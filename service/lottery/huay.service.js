@@ -1,11 +1,12 @@
 const huay = require("../../models/huay.model");
 const LotteryCategory = require("../../models/lotteryCategory.model");
+const LotteryItem = require("../../models/lotteryItem.model");
 
-exports.create = async (data, lottery_category_id) => {
+exports.create = async (data, lottery_item_id) => {
   try {
-    const category = await LotteryCategory.findById(lottery_category_id);
+    const category = await LotteryItem.findById(lottery_item_id);
     if (!category) {
-      throw new Error("Invalid lottery_category_id: Category not found.");
+      throw new Error("Invalid lottery_item_id : Category not found.");
     }
 
     let result;
@@ -26,9 +27,13 @@ exports.create = async (data, lottery_category_id) => {
   }
 };
 
-exports.getHuay = async () => {
+exports.getHuay = async (lotteryItemId) => {
   try {
-    const huayData = await huay.find();
+    if (!lotteryItemId) {
+      throw new Error("lotteryItemId is required.");
+    }
+
+    const huayData = await huay.find({ lottery_item_id: lotteryItemId });
     return huayData;
   } catch (error) {
     console.error("Failed to retrieve Huay data:", error.message);

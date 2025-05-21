@@ -1,19 +1,20 @@
 const huayService = require("../../service/lottery/huay.service");
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 exports.createHuay = async (req, res) => {
   try {
-    const { lottery_category_id, huays } = req.body;
+    const { lottery_item_id, huays } = req.body;
 
-    if (!lottery_category_id || !Array.isArray(huays) || !huays.length) {
+    if (!lottery_item_id || !Array.isArray(huays) || !huays.length) {
       return res.status(400).json({
         success: false,
-        message: "Missing lottery_category_id or huay data.",
+        message: "Missing lottery_item_id or huay data.",
       });
     }
 
     const payload = huays.map((huay) => ({
-      lottery_category_id,
+      lottery_item_id,
       huay_name: huay.huay_name || "",
       huay_number: Array.isArray(huay.huay_number)
         ? huay.huay_number
@@ -21,7 +22,7 @@ exports.createHuay = async (req, res) => {
       reward: huay.reward || "",
     }));
 
-    const result = await huayService.create(payload, lottery_category_id);
+    const result = await huayService.create(payload, lottery_item_id);
 
     return res.status(200).json({
       success: true,
@@ -39,12 +40,12 @@ exports.createHuay = async (req, res) => {
 
 exports.createHuayAPI = async (req, res) => {
   try {
-    const { lottery_category_id } = req.body;
+    const { lottery_item_id } = req.body;
 
-    if (!lottery_category_id) {
+    if (!lottery_item_id) {
       return res.status(400).json({
         success: false,
-        message: "Missing lottery_category_id.",
+        message: "Missing lottery_item_id .",
       });
     }
 
@@ -63,7 +64,7 @@ exports.createHuayAPI = async (req, res) => {
     const prizeFirst = data.prizes.find((prize) => prize.id === "prizeFirst");
     if (prizeFirst && Array.isArray(prizeFirst.number)) {
       huayData.push({
-        lottery_category_id,
+        lottery_item_id,
         huay_name: prizeFirst.name,
         huay_number: prizeFirst.number,
         reward: prizeFirst.reward,
@@ -73,7 +74,7 @@ exports.createHuayAPI = async (req, res) => {
     data.runningNumbers.forEach((running) => {
       if (Array.isArray(running.number)) {
         huayData.push({
-          lottery_category_id,
+          lottery_item_id,
           huay_name: running.name,
           huay_number: running.number,
           reward: running.reward,
@@ -88,7 +89,7 @@ exports.createHuayAPI = async (req, res) => {
       });
     }
 
-    const result = await huayService.create(huayData, lottery_category_id);
+    const result = await huayService.create(huayData, lottery_item_id);
 
     return res.status(200).json({
       success: true,
@@ -106,7 +107,31 @@ exports.createHuayAPI = async (req, res) => {
 
 exports.getHuay = async (req, res) => {
   try {
-    const huays = await huayService.getHuay();
+    const lotteryItemId = req.params.id;
+
+    if (!lotteryItemId || lotteryItemId.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "No lottery_item_id provided.",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(lotteryItemId)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid lottery_item_id format. and forget to check lottery_item_id",
+      });
+    }
+    const huays = await huayService.getHuay(lotteryItemId);
+
+    if (!huays || huays.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Not found data.",
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Huay data retrieved successfully.",

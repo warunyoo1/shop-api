@@ -1,26 +1,25 @@
 const LotteryItem = require("../../models/lotteryItem.model");
 const LotteryCategory = require("../../models/lotteryCategory.model");
 
-exports.createLottery = async function (dataArray) {
+exports.createLottery = async function (data) {
   try {
-    if (!Array.isArray(dataArray)) {
-      throw new Error("Input must be an array.");
+    if (typeof data !== "object" || Array.isArray(data) || data === null) {
+      throw new Error("Input must be a single object.");
     }
 
-    for (const data of dataArray) {
-      if (!data.category) {
-        throw new Error("Category ID is required for all lottery items.");
-      }
-
-      const existingCategory = await LotteryCategory.findById(data.category);
-      if (!existingCategory) {
-        throw new Error(`Lottery category not found: ${data.category}`);
-      }
+    if (!data.category) {
+      throw new Error("Category ID is required.");
     }
 
-    return await LotteryItem.insertMany(dataArray);
+    const existingCategory = await LotteryCategory.findById(data.category);
+    if (!existingCategory) {
+      throw new Error(`Lottery category not found: ${data.category}`);
+    }
+
+    const createdItem = await LotteryItem.create(data);
+    return createdItem;
   } catch (error) {
-    console.error("Error creating lottery items:", error.message);
+    console.error("Error creating lottery item:", error.message);
     throw error;
   }
 };

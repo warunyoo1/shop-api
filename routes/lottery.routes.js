@@ -27,7 +27,7 @@ router.put(
 // Route to create a Huay
 router.post("/createHuay", huayController.createHuay); //Create Huay Manual
 router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API
-router.get("/getHuay", huayController.getHuay); // Get Huay
+router.get("/getHuay/all/:id", huayController.getHuay); // Get Huay
 router.get("/getHuay/:id", huayController.getHuayById); // Get Huay by ID
 router.put("/updateHuay/:id", huayController.updateHuay); // Update Huay
 
