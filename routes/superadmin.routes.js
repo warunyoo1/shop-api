@@ -8,5 +8,8 @@
     router.get("/getbyid/:id", authmiddleware.isAdmin, superadminController.getSuperadminById);
     router.put("/update/:id", authmiddleware.isAdmin, superadminController.updateSuperadmin);
     router.delete("/delete/:id", authmiddleware.isAdmin, superadminController.deleteSuperadmin);
-
+    // active superadmin
+    router.put("/active/:id", authmiddleware.isAdmin, superadminController.activesuperadmin);
+    // disactive superadmin
+    router.put("/disactive/:id", authmiddleware.isAdmin, superadminController.disactivesuperadmin);
     module.exports = router; 

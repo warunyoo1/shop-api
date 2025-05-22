@@ -126,3 +126,43 @@ exports.deleteadmin = async (id) => {
 };
 
 
+
+// active admin
+exports.activeadmin = async (id) => {
+    if (!id) {
+        return { error: "กรุณาระบุ ID ของ admin" };
+    }
+
+    const result = await admin.findByIdAndUpdate(
+        id,
+        { $set: { active: true, updatedAt: new Date() } },
+        { new: true }
+    ).select('-password');
+
+    if (!result) {
+        return { error: "ไม่พบ admin ที่ต้องการอัพเดท" };
+    }
+
+    return { data: result };
+};
+// disactive admin
+exports.disactiveadmin = async (id) => {
+    if (!id) {
+        return { error: "กรุณาระบุ ID ของ admin" };
+    }
+
+    const result = await admin.findByIdAndUpdate(
+        id,
+        { $set: { active: false, updatedAt: new Date() } },
+        { new: true }
+    ).select('-password');
+
+    if (!result) {
+        return { error: "ไม่พบ admin ที่ต้องการอัพเดท" };
+    }
+
+    return { data: result };
+}
+
+
+

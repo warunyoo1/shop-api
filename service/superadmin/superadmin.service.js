@@ -70,8 +70,6 @@ exports.getSuperadminById = async (id) => {
 };
 
 exports.updateSuperadmin = async (id, updateData) => {
-   
-
     if (!id) {
         return { error: "กรุณาระบุ ID ของ superadmin" };
     }
@@ -105,6 +103,7 @@ exports.updateSuperadmin = async (id, updateData) => {
         { $set: updateData },
         { new: true }
     ).select('-password');
+
 };
 
 exports.deleteSuperadmin = async (id) => {
@@ -121,3 +120,42 @@ exports.deleteSuperadmin = async (id) => {
     return { message: "ลบ superadmin สำเร็จ" };
 };
 
+
+
+// active superadmin
+exports.activesuperadmin = async (id) => {
+    if (!id) {
+        return { error: "กรุณาระบุ ID ของ superadmin" };
+    }
+
+    const result = await superadmin.findByIdAndUpdate(
+        id,
+        { $set: { active: true, updatedAt: new Date() } },
+        { new: true }
+    ).select('-password');
+
+    if (!result) {
+        return { error: "ไม่พบ superadmin ที่ต้องการอัพเดท" };
+    }
+
+    return { data: result };
+};
+
+// disactive superadmin
+exports.disactivesuperadmin = async (id) => {
+    if (!id) {
+        return { error: "กรุณาระบุ ID ของ superadmin" };
+    }
+
+    const result = await superadmin.findByIdAndUpdate(
+        id,
+        { $set: { active: false, updatedAt: new Date() } },
+        { new: true }
+    ).select('-password');
+
+    if (!result) {
+        return { error: "ไม่พบ superadmin ที่ต้องการอัพเดท" };
+    }
+
+    return { data: result };
+};

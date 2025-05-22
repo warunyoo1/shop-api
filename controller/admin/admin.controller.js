@@ -374,3 +374,151 @@ exports.deleteAdmin = async (req, res) => {
     }
 };
 
+// active admin
+exports.activeadmin = async (req, res) => {
+    const userId = req.user?._id || null;
+    const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+    const ipRaw = req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    req.connection.remoteAddress ||
+    req.ip;
+    const ip = normalizeIP(ipRaw);
+    const referrer = req.get("Referer") || null;
+
+    try {
+        const { id } = req.params;
+        if (!id) {
+            await logAction("active_admin_error", {
+                tag: "active_admin",
+                userId,
+                endpoint: fullUrl,
+                method: "PUT",
+                data: { error: "Id is required", referrer, ip },
+            });
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: "Id is required"
+            });
+        }
+
+        const result = await adminService.activeadmin(id);
+        if (result.error) {
+            await logAction("active_admin_error", {
+                tag: "active_admin",
+                userId,
+                endpoint: fullUrl,
+                method: "PUT",
+                data: { error: result.error, referrer, ip },
+            });
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: result.error
+            });
+        }
+
+        await logAction("active_admin_success", {
+            tag: "active_admin",
+            userId,
+            endpoint: fullUrl,
+            method: "PUT",
+            data: { adminId: id, referrer, ip },
+        });
+
+        return res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "อัพเดทสถานะ admin เป็น active สำเร็จ",
+            data: result.data
+        });
+    } catch (error) {
+        await logAction("active_admin_error", {
+            tag: "active_admin",
+            userId,
+            endpoint: fullUrl,
+            method: "PUT",
+            data: { error: error.message, stack: error.stack, referrer, ip },
+        });
+        return res.status(500).json({
+            code: 500,
+            status: "error",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+
+// disactive admin
+exports.disactiveadmin = async (req, res) => {
+    const userId = req.user?._id || null;
+    const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+    const ipRaw = req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+    req.connection.remoteAddress ||
+    req.ip;
+    const ip = normalizeIP(ipRaw);
+    const referrer = req.get("Referer") || null;
+
+    try {
+        const { id } = req.params;
+        if (!id) {
+            await logAction("disactive_admin_error", {
+                tag: "disactive_admin",
+                userId,
+                endpoint: fullUrl,
+                method: "PUT",
+                data: { error: "Id is required", referrer, ip },
+            });
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: "Id is required"
+            });
+        }
+
+        const result = await adminService.disactiveadmin(id);
+        if (result.error) {
+            await logAction("disactive_admin_error", {
+                tag: "disactive_admin",
+                userId,
+                endpoint: fullUrl,
+                method: "PUT",
+                data: { error: result.error, referrer, ip },
+            });
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: result.error
+            });
+        }
+
+        await logAction("disactive_admin_success", {
+            tag: "disactive_admin",
+            userId,
+            endpoint: fullUrl,
+            method: "PUT",
+            data: { adminId: id, referrer, ip },
+        });
+
+        return res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "อัพเดทสถานะ admin เป็น inactive สำเร็จ",
+            data: result.data
+        });
+    } catch (error) {
+        await logAction("disactive_admin_error", {
+            tag: "disactive_admin",
+            userId,
+            endpoint: fullUrl,
+            method: "PUT",
+            data: { error: error.message, stack: error.stack, referrer, ip },
+        });
+        return res.status(500).json({
+            code: 500,
+            status: "error",
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+}
+

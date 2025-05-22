@@ -298,4 +298,58 @@ exports.deleteSuperadmin = async (req, res) => {
             error: err.message,
         });
     }
+} 
+
+// active superadmin
+exports.activesuperadmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await superadminService.activesuperadmin(id);
+
+        if (result.error) {
+            return res.status(400).json({
+                success: false,
+                message: result.error
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "อัพเดทสถานะ superadmin เป็น active สำเร็จ",
+            data: result.data
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "เกิดข้อผิดพลาดในการอัพเดทสถานะ superadmin",
+            error: error.message
+        });
+    }
+}
+
+// disactive superadmin
+exports.disactivesuperadmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await superadminService.disactivesuperadmin(id);
+
+        if (result.error) {
+            return res.status(400).json({
+                success: false,
+                message: result.error
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "อัพเดทสถานะ superadmin เป็น inactive สำเร็จ",
+            data: result.data
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "เกิดข้อผิดพลาดในการอัพเดทสถานะ superadmin",
+            error: error.message
+        });
+    }
 }

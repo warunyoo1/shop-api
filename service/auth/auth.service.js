@@ -9,12 +9,13 @@ exports.loginUser = async (username, password, ip, userAgent) => {
   const user = await User.findOne({ username });
   if (!user) return { success: false, message: "User not found" };
 
+  if (!user.active) return { success: false, message: "User is not active" };
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return { success: false, message: "Invalid credentials" };
 
   const checkResult = await exports.checkExistingRefreshToken(user._id);
   if (!checkResult.success) {
-    return { success: false, message: checkResult.message };
+    return {success: true, user: user, token:checkResult.token, refreshToken:checkResult.refreshToken };
   }
 
   const token = jwt.sign(
@@ -107,12 +108,16 @@ exports.checkExistingRefreshToken = async (userId) => {
         await RefreshToken.deleteOne({ userId });
         return { success: true };
       }
+ 
+       // ใช้ handleRefreshToken เพื่อสร้าง token ใหม่
+       const newAccessToken = await exports.handleRefreshToken(existingRefreshToken.token);
 
-      return {
-        success: false,
-        message:
-          "You are already logged in. Please logout or refresh your token.",
-      };
+       return {
+         success: false,
+         message: "Using existing valid token",
+         token: newAccessToken,
+         refreshToken: existingRefreshToken.token
+       };
     }
 
     return { success: true };

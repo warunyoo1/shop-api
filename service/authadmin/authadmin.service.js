@@ -8,48 +8,73 @@ require("dotenv").config();
  
 //ล็อคอิน
 exports.loginadmin = async (username, password, ip, userAgent) => {
-  // เช็คว่ามีการกรอก username และ password หรือไม่
+  // ตรวจสอบข้อมูลที่จำเป็น
   if (!username || !password) {
     return { error: "กรุณากรอก username และ password" };
   }
-  // เช็คว่า username และ password ถูกต้องหรือไม่
-  // เริ่มจากเช็ค super admin ก่อน
+
+  // ค้นหาผู้ใช้
   const superadminUser = await superadmin.findOne({
-    $or: [{ username:username }, { email:username }],
+    $or: [{ username }, { email: username }],
   });
-  const adminUser = await admin.findOne({ $or: [{ username:username }, { email:username }] });
+  const adminUser = await admin.findOne({
+    $or: [{ username }, { email: username }],
+  });
+
+  // ตรวจสอบและยืนยันตัวตนผู้ใช้
+  let user;
   if (superadminUser) {
-    // เช็ค password ว่าตรงกันหรือไม่
-    const isMatchpassword = await bcrypt.compare(
-      password,
-      superadminUser.password
-    );
-    if (!isMatchpassword) {
+    const isMatchPassword = await bcrypt.compare(password, superadminUser.password);
+    if (!isMatchPassword) {
       return { error: "รหัสผ่านไม่ถูกต้อง" };
     }
 
-    const checkResult = await exports.checkExistingRefreshToken(
-      superadminUser._id
-    );
-    if (!checkResult.success) {
-      return {success: true, user: superadminUser, token:checkResult.token, refreshToken:checkResult.refreshToken };
+    // เช็คว่า active เป็น true หรือ false
+    if (!superadminUser.active) {
+      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
     }
+    user = superadminUser;
+  } else if (adminUser) {
+    const isMatchPassword = await bcrypt.compare(password, adminUser.password);
+    if (!isMatchPassword) {
+      return { error: "รหัสผ่านไม่ถูกต้อง" };
+    }
+    // เช็คว่า active เป็น true หรือ false
+    if (!adminUser.active) {
+      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
+    }
+    user = adminUser;
+  } else {
+    return { error: "ไม่พบผู้ใช้" };
+  }
 
-    // สร้าง token และ refresh token
-    const token = jwt.sign(
+  // ตรวจสอบ refresh token ที่มีอยู่
+  const checkResult = await exports.checkExistingRefreshToken(user._id);
+  if (!checkResult.success) {
+    return {
+      success: true,
+      user: user,
+      token: checkResult.token,
+      refreshToken: checkResult.refreshToken
+    };
+  }
+
+  // สร้าง token และ refresh token
+  let token, refreshToken;
+  if (superadminUser) {
+    token = jwt.sign(
       {
         _id: superadminUser._id,
         username: superadminUser.username,
         email: superadminUser.email,
         phone: superadminUser.phone,
-        role: 'superadmin',
+        role: 'superadmin'
       },
       process.env.JWT_SECRET,
-      {
-        expiresIn: process.env.JWT_EXPIRATION,
-      }
+      { expiresIn: process.env.JWT_EXPIRATION }
     );
-    const refreshToken = jwt.sign(
+
+    refreshToken = jwt.sign(
       {
         _id: superadminUser._id,
         username: superadminUser.username,
@@ -60,77 +85,50 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
     );
-
-    const expiresAt = new Date(
-      Date.now() + ms(process.env.JWT_REFRESH_EXPIRATION)
-    );
-    await RefreshToken.create({
-      userId: superadminUser._id,
-      token: refreshToken,
-      ip,
-      userAgent,
-      expiresAt,
-    });
-
-    return { success: true, user: superadminUser, token:token, refreshToken:refreshToken  };
   } else if (adminUser) {
-    // เช็ค password ว่าตรงกันหรือไม่
-    const isMatchpassword = await bcrypt.compare(password, adminUser.password);
-    if (!isMatchpassword) {
-      return { error: "รหัสผ่านไม่ถูกต้อง" };
-    }
-
-    const checkResult = await exports.checkExistingRefreshToken(adminUser._id);
-    if (!checkResult.success) {
-      return {success: true, user: adminUser, token:checkResult.token, refreshToken:checkResult.refreshToken };
-    }
-
-
-    // console.log(adminUser);
-    // สร้าง token และ refresh token
-    const token = jwt.sign(
+    token = jwt.sign(
       {
         _id: adminUser._id,
         username: adminUser.username,
         email: adminUser.email,
         phone: adminUser.phone,
         role: 'admin',
-        premission: adminUser.role,
+        premission: adminUser.role
       },
       process.env.JWT_SECRET,
-      {
-        expiresIn: process.env.JWT_EXPIRATION,
-      }
+      { expiresIn: process.env.JWT_EXPIRATION }
     );
 
-    const refreshToken = jwt.sign(
+    refreshToken = jwt.sign(
       {
         _id: adminUser._id,
         username: adminUser.username,
         email: adminUser.email,
         phone: adminUser.phone,
         role: 'admin',
-        premission: adminUser.role,
+        premission: adminUser.role
       },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
     );
-
-    const expiresAt = new Date(
-      Date.now() + ms(process.env.JWT_REFRESH_EXPIRATION)
-    );
-    await RefreshToken.create({
-      userId: adminUser._id,
-      token: refreshToken,
-      ip,
-      userAgent,
-      expiresAt,
-    });
-
-    return { success: true, user: adminUser, token:token, refreshToken:refreshToken  };
-  } else {
-    return { error: "ไม่พบผู้ใช้" };
   }
+
+  // บันทึก refresh token
+  const expiresAt = new Date(Date.now() + ms(process.env.JWT_REFRESH_EXPIRATION));
+  await RefreshToken.create({
+    userId: user._id,
+    token: refreshToken,
+    ip,
+    userAgent,
+    expiresAt
+  });
+
+  return {
+    success: true,
+    user: user,
+    token,
+    refreshToken
+  };
 };
 
 //รีเฟรช token
@@ -199,3 +197,5 @@ exports.checkExistingRefreshToken = async (userId) => {
     return { success: false, message: err.message };
   }
 };
+
+
