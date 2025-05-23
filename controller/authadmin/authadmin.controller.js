@@ -144,3 +144,52 @@ exports.logout = async (req, res) => {
 };
 
 
+// ล็อคอิน master
+exports.loginMaster = async (req, res) => {
+  const ipRaw =
+  req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
+  req.connection.remoteAddress ||
+  req.ip;
+  const ip = normalizeIP(ipRaw);
+  const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+  const referrer = req.get("Referer") || null;
+  const userAgent = req.get("User-Agent");
+  const { username, password } = req.body;
+  try{
+  
+    const result = await authadminService.loginMaster(username, password, ip, userAgent);
+    if (result.success === false) {
+      return res.status(400).json({ error: result.message });
+    }
+    const {user, token, refreshToken} = result;
+    await logAction("login_success", {
+      tag: "login",
+      method: "POST",
+      userId: user._id,
+      endpoint: fullUrl,
+    });
+    return res.status(200).json({
+      code: 200,
+      status: "success",
+      message: "Login successful",
+      token,
+      refreshToken,
+    });
+
+  }catch(err){
+    await logAction("login_admin_error", {
+      tag: "login",
+      method: "POST",
+      endpoint: fullUrl,
+      data: { error: err.message, stack: err.stack, referrer, ip },
+    });
+
+    return res.status(500).json({
+      code: 500,
+      message: "Internal server error",
+      status: "error",
+      error: err.message,
+    });
+  }
+};
+

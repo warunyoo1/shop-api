@@ -1,6 +1,6 @@
 const User = require("../../models/user.model");
 
-exports.registerUser = async ({ username, email, password, phone }) => {
+exports.registerUser = async ({ username, email, password, phone , master_id= null }) => {
   const existingEmail = await User.findOne({ email });
   if (existingEmail) {
     return { error: "Email already exists" };
@@ -11,7 +11,7 @@ exports.registerUser = async ({ username, email, password, phone }) => {
     return { error: "Username already exists" };
   }
 
-  const user = new User({ username, email, password, phone });
+  const user = new User({ username, email, password, phone,master_id });
   await user.save();
 
   return { user };
@@ -55,7 +55,7 @@ exports.getuser = async ({ page = 1, perPage = 10, search }) => {
     } catch (error) {
         return { error: error.message };
     }
-};
+}; 
 
 // get user by id
 exports.getUserById = async (userId) => {

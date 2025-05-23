@@ -6,6 +6,7 @@ const authadminController = require("../controller/authadmin/authadmin.controlle
 router.post("/login", authadminController.login);
 router.post("/refresh-token", authadminController.refreshToken);
 router.post("/logout", authadminController.logout);
+router.post("/login-master", authadminController.loginMaster);
 
 
 module.exports = router;

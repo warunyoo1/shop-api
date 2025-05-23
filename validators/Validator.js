@@ -6,6 +6,7 @@ exports.RegisterValidate = (data) => {
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
     phone: Joi.string().min(10).max(15).required(),
+    master_id: Joi.string().allow(null).optional(),
   });
 
   return schema.validate(data);
@@ -56,8 +57,22 @@ exports.adminValidate = (data) => {
       "array.empty": "Role cannot be empty",
     }),
   });
-
+  
   return schema.validate(data);
 };
 
+
+// vaild master
+exports.masterValidate = (data) => {
+  const schema = Joi.object({
+    id : Joi.string().allow(null).optional().optional(),
+    username: Joi.string().min(5).required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().allow(null).optional(),
+    phone: Joi.string().min(10).max(15).required(),
+    commission_percentage: Joi.number().min(0).max(100).required(),
+  });
+
+  return schema.validate(data);
+};
 

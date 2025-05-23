@@ -1,5 +1,6 @@
 const superadmin = require("../../models/superadmin.model");
 const admin = require("../../models/admin.model");
+const master = require("../../models/master.model");
 const RefreshToken = require("../../models/refreshToken.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -195,6 +196,90 @@ exports.checkExistingRefreshToken = async (userId) => {
     return { success: true };
   } catch (err) {
     return { success: false, message: err.message };
+  }
+};
+
+
+
+
+// ล็อคอิน master
+exports.loginMaster = async (username, password, ip, userAgent) => {
+  // ตรวจสอบข้อมูลที่จำเป็น
+  if (!username || !password) {
+    return { error: "กรุณากรอก username และ password" };
+  }
+
+  // ค้นหาผู้ใช้
+  const masterUser = await master.findOne({
+    $or: [{ username }, { email: username }],
+  });
+
+  if(masterUser){
+    const isMatchPassword = await bcrypt.compare(password, masterUser.password);
+    if(!isMatchPassword){
+      return { error: "รหัสผ่านไม่ถูกต้อง" };
+    }
+    if(!masterUser.active){
+      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
+    }
+    
+    // ตรวจสอบ refresh token ที่มีอยู่
+    const checkResult = await exports.checkExistingRefreshToken(masterUser._id);
+    if(!checkResult.success){
+      return {
+        success: true,
+        user: masterUser,
+        token: checkResult.token,
+        refreshToken: checkResult.refreshToken
+      }
+    }
+
+    // สร้าง token และ refresh token
+    let token, refreshToken;
+    token = jwt.sign(
+      {
+        _id: masterUser._id,
+        username: masterUser.username,
+        email: masterUser.email,
+        phone: masterUser.phone,
+        role: 'master',
+        commission_percentage: masterUser.commission_percentage
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRATION }
+    );
+
+    refreshToken = jwt.sign(
+      {
+        _id: masterUser._id,
+        username: masterUser.username,
+        email: masterUser.email,
+        phone: masterUser.phone,
+        role: 'master',
+        commission_percentage: masterUser.commission_percentage
+      },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
+    );
+
+    // บันทึก refresh token
+    const expiresAt = new Date(Date.now() + ms(process.env.JWT_REFRESH_EXPIRATION));
+    await RefreshToken.create({
+      userId: masterUser._id,
+      token: refreshToken,
+      ip,
+      userAgent,
+      expiresAt
+    });
+
+    return {
+      success: true,
+      user: masterUser,
+      token,
+      refreshToken
+    };
+  } else {
+    return { error: "ไม่พบผู้ใช้" };
   }
 };
 
