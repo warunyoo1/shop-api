@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const lotterySetsController = require("../controller/lottery/lottery.controller");
+const lotterySetsController = require("../controller/lottery/lotterySets.controller");
 const lotteryTypeController = require("../controller/lottery/lotteryType.controller");
 const huayController = require("../controller/lottery/huay.controller");
 const bettingTypesController = require("../controller/lottery/bettingTypes.controller");

@@ -1,4 +1,4 @@
-const lotteryService = require("../../service/lottery/lottery.service");
+const lotteryService = require("../../service/lottery/lotterySets.service");
 
 exports.createLotterySets = async (req, res) => {
   try {
