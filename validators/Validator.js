@@ -26,11 +26,10 @@ exports.loginValidate = (data) => {
   return schema.validate(data);
 };
 
-
 // vaild superadmin
 exports.superadminValidate = (data) => {
   const schema = Joi.object({
-    id : Joi.string().allow(null).optional().optional(),
+    id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
     email: Joi.string().email().required(),
     password: Joi.string().allow(null).optional(),
@@ -44,7 +43,7 @@ exports.superadminValidate = (data) => {
 // vaild admin
 exports.adminValidate = (data) => {
   const schema = Joi.object({
-    id : Joi.string().allow(null).optional().optional(),
+    id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
     email: Joi.string().email().required(),
     password: Joi.string().allow(null).optional(),
@@ -57,15 +56,14 @@ exports.adminValidate = (data) => {
       "array.empty": "Role cannot be empty",
     }),
   });
-  
+
   return schema.validate(data);
 };
-
 
 // vaild master
 exports.masterValidate = (data) => {
   const schema = Joi.object({
-    id : Joi.string().allow(null).optional().optional(),
+    id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
     email: Joi.string().email().required(),
     password: Joi.string().allow(null).optional(),
@@ -76,3 +74,24 @@ exports.masterValidate = (data) => {
   return schema.validate(data);
 };
 
+exports.createBettingTypeSchema  = (data) => {
+  const schema = Joi.object({
+    name: Joi.string().required().label("Name"),
+    description: Joi.string().required().label("Description"),
+    code: Joi.string().allow("", null),
+    lottery_type_id: Joi.string().required().label("Lottery Type ID"),
+  });
+
+  return schema.validate(data);
+};
+
+
+exports.updateBettingTypeSchema   = (data) => {
+  const schema = Joi.object({
+    name: Joi.string().required().label("Name"),
+    description: Joi.string().required().label("Description"),
+    code: Joi.string().allow("", null),
+  });
+
+  return schema.validate(data);
+};

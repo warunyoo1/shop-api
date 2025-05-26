@@ -3,6 +3,7 @@ const router = express.Router();
 const lotterySetsController = require("../controller/lottery/lottery.controller");
 const lotteryTypeController = require("../controller/lottery/lotteryType.controller");
 const huayController = require("../controller/lottery/huay.controller");
+const bettingTypesController = require("../controller/lottery/bettingTypes.controller");
 
 // Route to create a lottery
 router.post("/createSets", lotterySetsController.createLotterySets);
@@ -18,8 +19,18 @@ router.get("/getType", lotteryTypeController.GetLotteryType);
 router.delete(
   "/deleteLotteryType/:id",
   lotteryTypeController.DeleteLotteryType
-); //รอเเก้ไข
-router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory); //รอเเก้ไข
+);
+router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory);
+
+//route  to create a Betting Types
+router.post("/createBettingTypes", bettingTypesController.createBettingType);
+router.get("/getBettingTypes", bettingTypesController.getBettingTypes);
+router.get("/getBettingTypes/:id", bettingTypesController.getBettingTypeById);
+router.put("/updateBettingTypes/:id", bettingTypesController.updateBettingType);
+router.delete(
+  "/deleteBettingTypes/:id",
+  bettingTypesController.deleteBettingTypeById
+);
 
 // Route to create a Huay ยังไม่ได้เริ่มใช้งาน
 router.post("/createHuay", huayController.createHuay); //Create Huay Manual //รอเเก้ไข

@@ -1,0 +1,18 @@
+const mongoose = require("mongoose");
+
+const bettingTypesSchema = new mongoose.Schema({
+  lottery_type_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "LotteryType",
+    required: true,
+  },
+  name: { type: String, default: "" },
+  description: { type: String, default: "" },
+  code: { type: String, default: "" },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+module.exports = mongoose.model("BettingTypes", bettingTypesSchema);
