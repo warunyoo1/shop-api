@@ -1,36 +1,34 @@
-const lotteryCategoryService = require("../../service/lottery/lotteryCategory.service");
+const lotteryTypeService = require("../../service/lottery/lotteryType.service");
 
-exports.createLotteryCategory = async (req, res) => {
+exports.createLotteryType = async (req, res) => {
   try {
-    const created = await lotteryCategoryService.createLotteryCategory(
-      req.body
-    );
+    const created = await lotteryTypeService.createLotteryType(req.body);
     return res.status(201).json({
       success: true,
-      message: "Lottery category created successfully.",
+      message: "Lottery Type  created successfully.",
       data: created,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to create lottery category.",
+      message: "Failed to create lottery Type .",
       error: error.message,
     });
   }
 };
 
-exports.GetLotteryCategory = async (req, res) => {
+exports.GetLotteryType = async (req, res) => {
   try {
-    const categories = await lotteryCategoryService.getLotteryCategory();
+    const type = await lotteryTypeService.getLotteryType();
     return res.status(200).json({
       success: true,
-      message: "Lottery categories retrieved successfully.",
-      data: categories,
+      message: "Lottery Type retrieved successfully.",
+      data: type,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to retrieve lottery categories.",
+      message: "Failed to retrieve lottery Type.",
       error: error.message,
     });
   }

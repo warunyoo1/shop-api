@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const lotteryController = require("../controller/lottery/lottery.controller");
-const lotteryCategoryController = require("../controller/lottery/lotteryCategory.controller");
+const lotteryTypeController = require("../controller/lottery/lotteryType.controller");
 const huayController = require("../controller/lottery/huay.controller");
 
 // Route to create a lottery
@@ -13,16 +13,13 @@ router.delete("/delete/all", lotteryController.deleteAllLottery);
 router.delete("/delete/:id", lotteryController.deleteLottery);
 
 // Route to create a lottery category
-router.post("/createCategory", lotteryCategoryController.createLotteryCategory);
-router.get("/getCategory", lotteryCategoryController.GetLotteryCategory);
+router.post("/createType", lotteryTypeController.createLotteryType);
+router.get("/getType", lotteryTypeController.GetLotteryType);
 router.delete(
   "/deleteCategory/:id",
-  lotteryCategoryController.DeleteLotteryCategory
+  lotteryTypeController.DeleteLotteryCategory
 );
-router.put(
-  "/updateCategory/:id",
-  lotteryCategoryController.UpdateLotteryCategory
-);
+router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory);
 
 // Route to create a Huay
 router.post("/createHuay", huayController.createHuay); //Create Huay Manual

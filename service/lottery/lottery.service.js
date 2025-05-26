@@ -1,5 +1,5 @@
 const LotteryItem = require("../../models/lotteryItem.model");
-const LotteryCategory = require("../../models/lotteryCategory.model");
+const LotteryCategory = require("../../models/lotteryType.model");
 
 exports.createLottery = async function (data) {
   try {

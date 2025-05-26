@@ -1,14 +1,14 @@
-const LotteryCategory = require("../../models/lotteryCategory.model");
+const LotteryType = require("../../models/lotteryType.model");
 const LotteryItem = require("../../models/lotteryItem.model");
 const huay = require("../../models/huay.model");
 
-exports.createLotteryCategory = async function (data) {
-  const newLotteryCategory = new LotteryCategory(data);
+exports.createLotteryType = async function (data) {
+  const newLotteryCategory = new LotteryType(data);
   return await newLotteryCategory.save();
 };
 
-exports.getLotteryCategory = async function () {
-  return await LotteryCategory.find();
+exports.getLotteryType = async function () {
+  return await LotteryType.find();
 };
 
 exports.deleteLotteryCategory = async function (categoryId) {
