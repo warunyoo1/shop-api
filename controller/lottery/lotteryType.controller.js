@@ -34,27 +34,25 @@ exports.GetLotteryType = async (req, res) => {
   }
 };
 
-exports.DeleteLotteryCategory = async (req, res) => {
+exports.DeleteLotteryType = async (req, res) => {
   try {
-    const categoryId = req.params.id;
-    const deletedCategory = await lotteryCategoryService.deleteLotteryCategory(
-      categoryId
-    );
-    if (!deletedCategory) {
+    const typeId = req.params.id;
+    const deletedType = await lotteryTypeService.deleteLotteryType(typeId);
+    if (!deletedType) {
       return res.status(404).json({
         success: false,
-        message: "Lottery category not found.",
+        message: "Lottery Type not found.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Lottery category deleted successfully.",
-      data: deletedCategory,
+      message: "Lottery Type deleted successfully.",
+      data: deletedType,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to delete lottery category.",
+      message: "Failed to delete lottery Type.",
       error: error.message,
     });
   }

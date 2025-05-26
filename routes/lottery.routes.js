@@ -16,9 +16,9 @@ router.delete("/delete/:id", lotterySetsController.deleteLottery); //รอเ�
 router.post("/createType", lotteryTypeController.createLotteryType);
 router.get("/getType", lotteryTypeController.GetLotteryType);
 router.delete(
-  "/deleteCategory/:id",
-  lotteryTypeController.DeleteLotteryCategory
-); //รอเเก้ไข
+  "/deleteLotteryType/:id",
+  lotteryTypeController.DeleteLotteryType
+);//รอเเก้ไข
 router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory); //รอเเก้ไข
 
 // Route to create a Huay
