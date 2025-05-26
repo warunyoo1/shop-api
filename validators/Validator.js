@@ -116,6 +116,9 @@ exports.validateCreateLotteryType = (data) => {
       "any.required": `"name" is required`,
       "string.empty": `"name" cannot be empty`,
     }),
+    description: Joi.string().optional().allow("").messages({
+      "string.base": `"description" must be a string`,
+    }),
   });
 
   return schema.validate(data, { abortEarly: false });
