@@ -58,34 +58,34 @@ exports.getLotterySetsById = async (req, res) => {
   }
 };
 
-exports.updateLottery = async (req, res) => {
+exports.updateLotterySets = async (req, res) => {
   try {
     const lotteryId = req.params.id;
-    const updatedLottery = await lotteryService.updateLottery(
+    const updatedLotterySets = await lotteryService.updateLotterySets(
       lotteryId,
       req.body
     );
-    if (!updatedLottery) {
+    if (!updatedLotterySets) {
       return res.status(404).json({
         success: false,
-        message: "Lottery item not found.",
+        message: "LotterySets not found.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Lottery item updated successfully.",
-      data: updatedLottery,
+      message: "LotterySets updated successfully.",
+      data: updatedLotterySets,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to update lottery item.",
+      message: "Failed to update LotterySets.",
       error: error.message,
     });
   }
 };
 
-exports.deleteAllLottery = async (req, res) => {
+exports.deleteAllLotterySets = async (req, res) => {
   try {
     const deletedItems = await lotteryService.deleteAllLottery();
     return res.status(200).json({
@@ -109,18 +109,18 @@ exports.deleteLottery = async (req, res) => {
     if (!deletedLottery) {
       return res.status(404).json({
         success: false,
-        message: "Lottery item not found.",
+        message: "Lottery Sets not found.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Lottery item deleted successfully.",
+      message: "Lottery Sets deleted successfully.",
       data: deletedLottery,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to delete lottery item.",
+      message: "Failed to delete lottery Sets.",
       error: error.message,
     });
   }

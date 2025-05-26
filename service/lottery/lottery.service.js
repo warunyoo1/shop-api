@@ -41,19 +41,19 @@ exports.getLotteryById = async function (lotteryId) {
   }
 };
 
-exports.updateLottery = async function (lotteryId, data) {
+exports.updateLotterySets = async function (lotteryId, data) {
   try {
-    const updatedLotteryItem = await LotteryItem.findByIdAndUpdate(
+    const updatedLotterySets = await LotterySets.findByIdAndUpdate(
       lotteryId,
       data,
       { new: true }
     );
 
-    if (!updatedLotteryItem) {
+    if (!updatedLotterySets) {
       throw new Error("Lottery not found.");
     }
 
-    return updatedLotteryItem;
+    return updatedLotterySets;
   } catch (error) {
     console.error("Error updating lottery item:", error.message);
     throw error;
@@ -62,23 +62,23 @@ exports.updateLottery = async function (lotteryId, data) {
 
 exports.deleteAllLottery = async function () {
   try {
-    const deletedItems = await LotteryItem.deleteMany();
+    const deletedItems = await LotterySets.deleteMany();
     return deletedItems;
   } catch (error) {
-    console.error("Error deleting all lottery items:", error.message);
+    console.error("Error deleting all lottery Sets:", error.message);
     throw error;
   }
 };
 
 exports.deleteLottery = async function (lotteryId) {
   try {
-    const deletedLottery = await LotteryItem.findByIdAndDelete(lotteryId);
+    const deletedLottery = await LotterySets.findByIdAndDelete(lotteryId);
     if (!deletedLottery) {
-      throw new Error("Lottery item not found.");
+      throw new Error("Lottery Sets not found.");
     }
     return deletedLottery;
   } catch (error) {
-    console.error("Error deleting lottery item:", error.message);
+    console.error("Error deleting lottery Sets:", error.message);
     throw error;
   }
 };
