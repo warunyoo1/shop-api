@@ -1,12 +1,13 @@
 const LotterySets = require("../../models/lotterySets.model");
 const LotteryType = require("../../models/lotteryType.model");
 const BettingType = require("../../models/bettingTypes.model");
+const mongoose = require("mongoose");
 
 exports.createLotterySets = async function (data) {
   try {
     validateInput(data);
     await validateLotteryType(data.lottery_type_id);
-    validateBettingOptions(data.betting_options);
+    await validateBettingOptionsAndIds(data.betting_options);
 
     const createdSet = await LotterySets.create(data);
 
@@ -96,26 +97,46 @@ async function validateLotteryType(lotteryTypeId) {
   }
 }
 
-async function validateBettingOptions(options) {
-  options.forEach((option, index) => {
-    const missingFields = [];
+async function validateBettingOptionsAndIds(options) {
+  if (!Array.isArray(options))
+    throw new Error("betting_options must be an array.");
 
-    if (option.payout_rate == null) missingFields.push("payout_rate");
-    if (option.min_bet == null) missingFields.push("min_bet");
-    if (option.max_bet == null) missingFields.push("max_bet");
+  const errors = [];
+  const ids = [];
 
-    if (missingFields.length) {
-      throw new Error(
-        `Betting option at index ${index} is missing: ${missingFields.join(
-          ", "
-        )}`
-      );
-    }
+  options.forEach(({ betting_type_id, payout_rate, min_bet, max_bet }, i) => {
+    const missing = [];
+    if (!betting_type_id) missing.push("betting_type_id");
+    if (payout_rate == null) missing.push("payout_rate");
+    if (min_bet == null) missing.push("min_bet");
+    if (max_bet == null) missing.push("max_bet");
 
-    if (option.min_bet > option.max_bet) {
-      throw new Error(
-        `min_bet cannot be greater than max_bet at index ${index}.`
-      );
-    }
+    if (missing.length)
+      errors.push(`Index ${i} missing: ${missing.join(", ")}`);
+
+    if (min_bet != null && max_bet != null && min_bet > max_bet)
+      errors.push(`Index ${i}: min_bet cannot be greater than max_bet`);
+
+    if (betting_type_id) ids.push(betting_type_id);
   });
+
+  if (errors.length) throw new Error(errors.join(" | "));
+
+  const uniqueIds = [...new Set(ids.map((id) => id.toString()))];
+
+  for (let i = 0; i < uniqueIds.length; i++) {
+    if (!mongoose.Types.ObjectId.isValid(uniqueIds[i]))
+      throw new Error(`Invalid betting_type_id format: ${uniqueIds[i]}`);
+  }
+
+  const found = await BettingType.find({ _id: { $in: uniqueIds } })
+    .select("_id")
+    .lean();
+  const foundIds = new Set(found.map((f) => f._id.toString()));
+
+  uniqueIds.forEach((id) => {
+    if (!foundIds.has(id)) errors.push(`betting_type_id not found: ${id}`);
+  });
+
+  if (errors.length) throw new Error(errors.join(" | "));
 }
