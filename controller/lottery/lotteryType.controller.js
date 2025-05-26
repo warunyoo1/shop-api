@@ -60,21 +60,21 @@ exports.DeleteLotteryType = async (req, res) => {
 
 exports.UpdateLotteryCategory = async (req, res) => {
   try {
-    const categoryId = req.params.id;
-    const updatedCategory = await lotteryCategoryService.updateLotteryCategory(
-      categoryId,
+    const Id = req.params.id;
+    const updatedType = await lotteryTypeService.updateLotteryType(
+      Id,
       req.body
     );
-    if (!updatedCategory) {
+    if (!updatedType) {
       return res.status(404).json({
         success: false,
-        message: "Lottery category not found.",
+        message: "Lottery Type not found.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Lottery category updated successfully.",
-      data: updatedCategory,
+      message: "Lottery Type updated successfully.",
+      data: updatedType,
     });
   } catch (error) {
     return res.status(400).json({

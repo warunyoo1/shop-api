@@ -31,13 +31,13 @@ exports.getLotterySets = async function () {
 
 exports.getLotteryById = async function (lotteryId) {
   try {
-    const lottery = await LotteryItem.findById(lotteryId);
+    const lottery = await LotterySets.findById(lotteryId);
     if (!lottery) {
-      throw new Error("Lottery item not found.");
+      throw new Error("Lottery LotterySets not found.");
     }
     return lottery;
   } catch (error) {
-    throw new Error("Error retrieving lottery item: " + error.message);
+    throw new Error("Error retrieving lotterySets: " + error.message);
   }
 };
 

@@ -12,7 +12,6 @@ exports.getLotteryType = async function () {
 };
 
 exports.deleteLotteryType = async function (typeId) {
-  console.error("Deleting lottery type with ID:", typeId);
   try {
     const deletedtype = await LotteryType.findByIdAndDelete(typeId);
 
@@ -30,13 +29,11 @@ exports.deleteLotteryType = async function (typeId) {
   }
 };
 
-exports.updateLotteryCategory = async function (categoryId, data) {
+exports.updateLotteryType = async function (Id, data) {
   try {
-    const updatedCategory = await LotteryCategory.findByIdAndUpdate(
-      categoryId,
-      data,
-      { new: true }
-    );
+    const updatedCategory = await LotteryType.findByIdAndUpdate(Id, data, {
+      new: true,
+    });
 
     if (!updatedCategory) {
       throw new Error("Lottery category not found.");
