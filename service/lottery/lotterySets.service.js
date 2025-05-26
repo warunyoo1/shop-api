@@ -1,26 +1,18 @@
 const LotterySets = require("../../models/lotterySets.model");
 const LotteryType = require("../../models/lotteryType.model");
+const BettingType = require("../../models/bettingTypes.model");
 
 exports.createLotterySets = async function (data) {
   try {
-    if (typeof data !== "object" || Array.isArray(data) || data === null) {
-      throw new Error("Input must be a single object.");
-    }
+    validateInput(data);
+    await validateLotteryType(data.lottery_type_id);
+    validateBettingOptions(data.betting_options);
 
-    console.log("Creating lottery Sets with data:", data);
-    if (!data.lottery_type_id) {
-      throw new Error("type ID is required.");
-    }
+    const createdSet = await LotterySets.create(data);
 
-    const existingType = await LotteryType.findById(data.lottery_type_id);
-    if (!existingType) {
-      throw new Error(`Lottery type not found: ${data.lottery_type_id}`);
-    }
-
-    const createdItem = await LotterySets.create(data);
-    return createdItem;
+    return createdSet;
   } catch (error) {
-    console.error("Error creating lottery Sets:", error.message);
+    console.error("Error creating lottery sets:", error.message);
     throw error;
   }
 };
@@ -82,3 +74,48 @@ exports.deleteLottery = async function (lotteryId) {
     throw error;
   }
 };
+
+async function validateInput(data) {
+  if (typeof data !== "object" || Array.isArray(data) || data === null) {
+    throw new Error("Input must be a single object.");
+  }
+
+  if (!data.lottery_type_id) {
+    throw new Error("lottery_type_id is required.");
+  }
+
+  if (!Array.isArray(data.betting_options)) {
+    throw new Error("betting_options must be an array.");
+  }
+}
+
+async function validateLotteryType(lotteryTypeId) {
+  const exists = await LotteryType.findById(lotteryTypeId);
+  if (!exists) {
+    throw new Error(`Lottery type not found: ${lotteryTypeId}`);
+  }
+}
+
+async function validateBettingOptions(options) {
+  options.forEach((option, index) => {
+    const missingFields = [];
+
+    if (option.payout_rate == null) missingFields.push("payout_rate");
+    if (option.min_bet == null) missingFields.push("min_bet");
+    if (option.max_bet == null) missingFields.push("max_bet");
+
+    if (missingFields.length) {
+      throw new Error(
+        `Betting option at index ${index} is missing: ${missingFields.join(
+          ", "
+        )}`
+      );
+    }
+
+    if (option.min_bet > option.max_bet) {
+      throw new Error(
+        `min_bet cannot be greater than max_bet at index ${index}.`
+      );
+    }
+  });
+}

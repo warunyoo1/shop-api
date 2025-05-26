@@ -1,4 +1,4 @@
-const bettingTypes = require("../../models/BettingTypes");
+const bettingTypes = require("../../models/bettingTypes.model");
 const LotteryType = require("../../models/lotteryType.model");
 
 exports.createBettingType = async ({

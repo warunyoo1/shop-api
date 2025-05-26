@@ -22,6 +22,26 @@ const lotterySetsSchema = new mongoose.Schema({
     type: Date,
     default: true,
   },
+  betting_options: [
+    {
+      betting_type_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+      payout_rate: {
+        type: Number,
+        required: true,
+      },
+      min_bet: {
+        type: Number,
+        required: true,
+      },
+      max_bet: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
 });
 
 module.exports = mongoose.model("LotterySets", lotterySetsSchema);
