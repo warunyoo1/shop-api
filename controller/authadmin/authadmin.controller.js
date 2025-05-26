@@ -127,19 +127,19 @@ exports.refreshToken = async (req, res) => {
 
 
 exports.logout = async (req, res) => {
-    const authorizationHeader = req.headers["authorization"];
-    if (!authorizationHeader)
-      return res.status(400).json({ error: "Missing authorization header" });
-  
-    const token = authorizationHeader.split(" ")[1];
-    if (!token) return res.status(400).json({ error: "Missing token" });
-  
-    try {
-      const result = await authadminService.logout(token);
-      return res.status(200).json({ message: "Logged out successfully" });
-    } catch (err) {
-      return res.status(500).json({ error: "Failed to logout" });
-    }
+  const authorizationHeader = req.headers["authorization"];
+  if (!authorizationHeader)
+    return res.status(400).json({ error: "Missing authorization header" });
+
+  const token = authorizationHeader.split(" ")[1];
+  if (!token) return res.status(400).json({ error: "Missing token" });
+
+  try {
+    await authadminService.logout(token);
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 
 };
 

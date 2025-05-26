@@ -159,14 +159,14 @@ exports.handleRefreshToken = async (refreshToken) => {
 };
 // logout
 exports.logout = async (refreshToken) => {
-    const existingToken = await RefreshToken.findOne({ token: refreshToken });
-    if (!existingToken) {
-      console.log("No matching refresh token found");
-      throw new Error("Invalid refresh token");
-    }
-  
-    await RefreshToken.deleteOne({ token: refreshToken });
-    console.log("Refresh token successfully deleted");
+  const existingToken = await RefreshToken.findOne({ token: refreshToken });
+  if (!existingToken) {
+    console.log("No matching refresh token found");
+    throw new Error("Invalid refresh token");
+  }
+
+  await RefreshToken.deleteOne({ token: refreshToken });
+  console.log("Refresh token successfully deleted");
 };
 
 //checkExistingRefreshToken
