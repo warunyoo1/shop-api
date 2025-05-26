@@ -1,31 +1,32 @@
-const LotteryItem = require("../../models/lotteryItem.model");
-const LotteryCategory = require("../../models/lotteryType.model");
+const LotterySets = require("../../models/lotterySets.model");
+const LotteryType = require("../../models/lotteryType.model");
 
-exports.createLottery = async function (data) {
+exports.createLotterySets = async function (data) {
   try {
     if (typeof data !== "object" || Array.isArray(data) || data === null) {
       throw new Error("Input must be a single object.");
     }
 
-    if (!data.category) {
-      throw new Error("Category ID is required.");
+    console.log("Creating lottery Sets with data:", data);
+    if (!data.lottery_type_id) {
+      throw new Error("type ID is required.");
     }
 
-    const existingCategory = await LotteryCategory.findById(data.category);
-    if (!existingCategory) {
-      throw new Error(`Lottery category not found: ${data.category}`);
+    const existingType = await LotteryType.findById(data.lottery_type_id);
+    if (!existingType) {
+      throw new Error(`Lottery type not found: ${data.lottery_type_id}`);
     }
 
-    const createdItem = await LotteryItem.create(data);
+    const createdItem = await LotterySets.create(data);
     return createdItem;
   } catch (error) {
-    console.error("Error creating lottery item:", error.message);
+    console.error("Error creating lottery Sets:", error.message);
     throw error;
   }
 };
 
-exports.getLottery = async function () {
-  return await LotteryItem.find();
+exports.getLotterySets = async function () {
+  return await LotterySets.find();
 };
 
 exports.getLotteryById = async function (lotteryId) {

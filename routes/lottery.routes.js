@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
-const lotteryController = require("../controller/lottery/lottery.controller");
+const lotterySetsController = require("../controller/lottery/lottery.controller");
 const lotteryTypeController = require("../controller/lottery/lotteryType.controller");
 const huayController = require("../controller/lottery/huay.controller");
 
 // Route to create a lottery
-router.post("/create", lotteryController.createLottery);
-router.get("/getLottery", lotteryController.getLottery);
-router.get("/getLottery/:id", lotteryController.getLotteryById);
-router.put("/update/:id", lotteryController.updateLottery);
-router.delete("/delete/all", lotteryController.deleteAllLottery);
-router.delete("/delete/:id", lotteryController.deleteLottery);
+router.post("/createSets", lotterySetsController.createLotterySets);
+router.get("/getLotterySets", lotterySetsController.getLotterySets);
+router.get("/getLotterySets/:id", lotterySetsController.getLotterySetsById);
+router.put("/update/:id", lotterySetsController.updateLottery); //รอเเก้ไข
+router.delete("/delete/all", lotterySetsController.deleteAllLottery); //รอเเก้ไข
+router.delete("/delete/:id", lotterySetsController.deleteLottery); //รอเเก้ไข
 
 // Route to create a lottery category
 router.post("/createType", lotteryTypeController.createLotteryType);
@@ -18,14 +18,14 @@ router.get("/getType", lotteryTypeController.GetLotteryType);
 router.delete(
   "/deleteCategory/:id",
   lotteryTypeController.DeleteLotteryCategory
-);
-router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory);
+); //รอเเก้ไข
+router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory); //รอเเก้ไข
 
 // Route to create a Huay
-router.post("/createHuay", huayController.createHuay); //Create Huay Manual
-router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API
-router.get("/getHuay/all/:id", huayController.getHuay); // Get Huay
-router.get("/getHuay/:id", huayController.getHuayById); // Get Huay by ID
-router.put("/updateHuay/:id", huayController.updateHuay); // Update Huay
+router.post("/createHuay", huayController.createHuay); //Create Huay Manual //รอเเก้ไข
+router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API //รอเเก้ไข
+router.get("/getHuay/all/:id", huayController.getHuay); // Get Huay //รอเเก้ไข
+router.get("/getHuay/:id", huayController.getHuayById); // Get Huay by ID //รอเเก้ไข
+router.put("/updateHuay/:id", huayController.updateHuay); // Update Huay //รอเเก้ไข
 
 module.exports = router;

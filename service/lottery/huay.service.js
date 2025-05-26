@@ -1,6 +1,6 @@
 const huay = require("../../models/huay.model");
 const LotteryCategory = require("../../models/lotteryType.model");
-const LotteryItem = require("../../models/lotteryItem.model");
+const LotteryItem = require("../../models/lotterySets.model");
 
 exports.create = async (data, lottery_item_id) => {
   try {

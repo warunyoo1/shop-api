@@ -1,8 +1,8 @@
 const lotteryService = require("../../service/lottery/lottery.service");
 
-exports.createLottery = async (req, res) => {
+exports.createLotterySets = async (req, res) => {
   try {
-    const created = await lotteryService.createLottery(req.body);
+    const created = await lotteryService.createLotterySets(req.body);
     return res.status(201).json({
       success: true,
       message: "Lottery items created successfully.",
@@ -17,12 +17,12 @@ exports.createLottery = async (req, res) => {
   }
 };
 
-exports.getLottery = async (req, res) => {
+exports.getLotterySets = async (req, res) => {
   try {
-    const lotteries = await lotteryService.getLottery();
+    const lotteries = await lotteryService.getLotterySets();
     return res.status(200).json({
       success: true,
-      message: "Lottery items retrieved successfully.",
+      message: "Lottery Sets retrieved successfully.",
       data: lotteries,
     });
   } catch (error) {
@@ -34,25 +34,25 @@ exports.getLottery = async (req, res) => {
   }
 };
 
-exports.getLotteryById = async (req, res) => {
+exports.getLotterySetsById = async (req, res) => {
   try {
     const lotteryId = req.params.id;
     const lottery = await lotteryService.getLotteryById(lotteryId);
     if (!lottery) {
       return res.status(404).json({
         success: false,
-        message: "Lottery item not found.",
+        message: "Lottery Sets not found.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Lottery item retrieved successfully.",
+      message: "Lottery Sets retrieved successfully.",
       data: lottery,
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to retrieve lottery item.",
+      message: "Failed to retrieve lottery Sets.",
       error: error.message,
     });
   }
