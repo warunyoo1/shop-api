@@ -74,7 +74,7 @@ exports.masterValidate = (data) => {
   return schema.validate(data);
 };
 
-exports.createBettingTypeSchema  = (data) => {
+exports.createBettingTypeSchema = (data) => {
   const schema = Joi.object({
     name: Joi.string().required().label("Name"),
     description: Joi.string().required().label("Description"),
@@ -85,12 +85,22 @@ exports.createBettingTypeSchema  = (data) => {
   return schema.validate(data);
 };
 
-
-exports.updateBettingTypeSchema   = (data) => {
+exports.updateBettingTypeSchema = (data) => {
   const schema = Joi.object({
     name: Joi.string().required().label("Name"),
     description: Joi.string().required().label("Description"),
     code: Joi.string().allow("", null),
+  });
+
+  return schema.validate(data);
+};
+
+exports.validateCreateLotteryType = (data) => {
+  const schema = Joi.object({
+    name: Joi.string().required().messages({
+      "any.required": `"name" is required`,
+      "string.empty": `"name" cannot be empty`,
+    }),
   });
 
   return schema.validate(data);
