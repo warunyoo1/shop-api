@@ -9,7 +9,7 @@ exports.RegisterValidate = (data) => {
     master_id: Joi.string().allow(null).optional(),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 exports.loginValidate = (data) => {
@@ -23,7 +23,7 @@ exports.loginValidate = (data) => {
     }),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 // vaild superadmin
@@ -37,7 +37,7 @@ exports.superadminValidate = (data) => {
     address: Joi.string().allow(null).optional(),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 // vaild admin
@@ -57,7 +57,7 @@ exports.adminValidate = (data) => {
     }),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 // vaild master
@@ -71,28 +71,43 @@ exports.masterValidate = (data) => {
     commission_percentage: Joi.number().min(0).max(100).required(),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 exports.createBettingTypeSchema = (data) => {
   const schema = Joi.object({
-    name: Joi.string().required().label("Name"),
-    description: Joi.string().required().label("Description"),
-    code: Joi.string().allow("", null),
-    lottery_type_id: Joi.string().required().label("Lottery Type ID"),
+    name: Joi.string().required().label("Name").messages({
+      "any.required": `"Name" is required.`,
+      "string.empty": `"Name" cannot be empty.`,
+    }),
+    description: Joi.string().required().label("Description").messages({
+      "any.required": `"Description" is required.`,
+      "string.empty": `"Description" cannot be empty.`,
+    }),
+    code: Joi.string().allow("", null).label("Code"),
+    lottery_type_id: Joi.string().required().label("Lottery Type ID").messages({
+      "any.required": `"Lottery Type ID" is required.`,
+      "string.empty": `"Lottery Type ID" cannot be empty.`,
+    }),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 exports.updateBettingTypeSchema = (data) => {
   const schema = Joi.object({
-    name: Joi.string().required().label("Name"),
-    description: Joi.string().required().label("Description"),
-    code: Joi.string().allow("", null),
+    name: Joi.string().required().label("Name").messages({
+      "any.required": `"Name" is required.`,
+      "string.empty": `"Name" cannot be empty.`,
+    }),
+    description: Joi.string().required().label("Description").messages({
+      "any.required": `"Description" is required.`,
+      "string.empty": `"Description" cannot be empty.`,
+    }),
+    code: Joi.string().allow("", null).label("Code"),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
 
 exports.validateCreateLotteryType = (data) => {
@@ -103,5 +118,5 @@ exports.validateCreateLotteryType = (data) => {
     }),
   });
 
-  return schema.validate(data);
+  return schema.validate(data, { abortEarly: false });
 };
