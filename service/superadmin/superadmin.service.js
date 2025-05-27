@@ -80,7 +80,8 @@ exports.updateSuperadmin = async (id, updateData) => {
             $or: [
                 { username: updateData.username },
                 { email: updateData.email }
-            ]
+            ],
+            _id: { $ne: id }
         });
 
         const existingAdmin = await admin.findOne({
