@@ -5,7 +5,7 @@ const lotteryTypeController = require("../controller/lottery/lotteryType.control
 const huayController = require("../controller/lottery/huay.controller");
 const bettingTypesController = require("../controller/lottery/bettingTypes.controller");
 
-// Route to create a lottery
+// Route to create a lottery Sets
 router.post("/createSets", lotterySetsController.createLotterySets);
 router.get("/getLotterySets", lotterySetsController.getLotterySets);
 router.get("/getLotterySets/:id", lotterySetsController.getLotterySetsById);
@@ -13,7 +13,7 @@ router.put("/update/LotterySets/:id", lotterySetsController.updateLotterySets);
 router.delete("/delete/all", lotterySetsController.deleteAllLotterySets);
 router.delete("/delete/:id", lotterySetsController.deleteLottery);
 
-// Route to create a lottery category
+// Route to create a lottery type
 router.post("/createType", lotteryTypeController.createLotteryType);
 router.get("/getType", lotteryTypeController.GetLotteryType);
 router.delete(
@@ -30,6 +30,10 @@ router.put("/updateBettingTypes/:id", bettingTypesController.updateBettingType);
 router.delete(
   "/deleteBettingTypes/:id",
   bettingTypesController.deleteBettingTypeById
+);
+router.get(
+  "/getBettingTypesByLotteryType/:id",
+  bettingTypesController.getBettingTypeByLotteryType
 );
 
 // Route to create a Huay ยังไม่ได้เริ่มใช้งาน

@@ -149,3 +149,32 @@ exports.deleteBettingTypeById = async (req, res) => {
     });
   }
 };
+
+exports.getBettingTypeByLotteryType = async (req, res) => {
+  try {
+    const lotteryTypeId = req.params.id;
+
+    const bettingTypes =
+      await bettingTypesService.getBettingTypesByLotteryTypeId(lotteryTypeId);
+
+    if (!bettingTypes || bettingTypes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No betting types found for this lottery type.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Betting types retrieved successfully.",
+      data: bettingTypes,
+    });
+  } catch (error) {
+    console.error("Get Betting Type By Lottery Type Error:", error.message);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to retrieve betting types.",
+      error: error.message,
+    });
+  }
+};

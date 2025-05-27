@@ -19,15 +19,31 @@ exports.createLotterySets = async function (data) {
 };
 
 exports.getLotterySets = async function () {
-  return await LotterySets.find();
+  try {
+    const lotterySets = await LotterySets.find()
+      .populate("lottery_type_id")
+      .populate({
+        path: "betting_options.betting_type_id",
+        model: "BettingTypes",
+      });
+
+    return lotterySets;
+  } catch (error) {
+    throw new Error("Error retrieving lottery sets: " + error.message);
+  }
 };
 
 exports.getLotteryById = async function (lotteryId) {
   try {
-    const lottery = await LotterySets.findById(lotteryId);
+    const lottery = await LotterySets.findById(lotteryId).populate({
+      path: "betting_options.betting_type_id",
+      model: "BettingTypes",
+    });
+
     if (!lottery) {
-      throw new Error("Lottery LotterySets not found.");
+      throw new Error("LotterySets not found.");
     }
+
     return lottery;
   } catch (error) {
     throw new Error("Error retrieving lotterySets: " + error.message);

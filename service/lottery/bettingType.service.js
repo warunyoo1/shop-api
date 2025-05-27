@@ -93,3 +93,25 @@ exports.deleteBettingTypeById = async (id) => {
     throw new Error("Failed to delete betting type: " + error.message);
   }
 };
+
+exports.getBettingTypesByLotteryTypeId = async (lottery_type_id) => {
+  try {
+    const types = await bettingTypes
+      .find({ lottery_type_id })
+      .populate("lottery_type_id");
+
+    if (types.length === 0) {
+      throw new Error(
+        `No betting types found for lottery type ID ${lottery_type_id}.`
+      );
+    }
+
+    return types;
+  } catch (error) {
+    console.error(
+      "Service Error - getBettingTypesByLotteryTypeId:",
+      error.message
+    );
+    throw new Error("Failed to retrieve betting types: " + error.message);
+  }
+};
