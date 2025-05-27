@@ -20,7 +20,7 @@ router.delete(
   "/deleteLotteryType/:id",
   lotteryTypeController.DeleteLotteryType
 );
-router.put("/updateCategory/:id", lotteryTypeController.UpdateLotteryCategory);
+router.put("/updateType/:id", lotteryTypeController.UpdateLotteryType);
 
 //route  to create a Betting Types
 router.post("/createBettingTypes", bettingTypesController.createBettingType);

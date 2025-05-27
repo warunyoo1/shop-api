@@ -36,12 +36,12 @@ exports.updateLotteryType = async function (Id, data) {
     });
 
     if (!updatedCategory) {
-      throw new Error("Lottery category not found.");
+      throw new Error("Lottery Type not found.");
     }
 
     return updatedCategory;
   } catch (error) {
-    console.error("Error updating lottery category:", error.message);
+    console.error("Error updating lottery Type:", error.message);
     throw error;
   }
 };

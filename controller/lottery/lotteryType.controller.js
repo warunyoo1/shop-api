@@ -69,7 +69,7 @@ exports.DeleteLotteryType = async (req, res) => {
   }
 };
 
-exports.UpdateLotteryCategory = async (req, res) => {
+exports.UpdateLotteryType = async (req, res) => {
   try {
     const Id = req.params.id;
     const updatedType = await lotteryTypeService.updateLotteryType(
@@ -90,7 +90,7 @@ exports.UpdateLotteryCategory = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "Failed to update lottery category.",
+      message: "Failed to update lottery Type.",
       error: error.message,
     });
   }
