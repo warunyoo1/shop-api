@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-exports.RegisterValidate = (data) => {
+exports.RegisterValidate = data => {
   const schema = Joi.object({
     username: Joi.string().min(5).required(),
     email: Joi.string().email().required(),
@@ -12,7 +12,7 @@ exports.RegisterValidate = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-exports.loginValidate = (data) => {
+exports.loginValidate = data => {
   const schema = Joi.object({
     username: Joi.string().required().messages({
       "string.empty": "Username is required",
@@ -27,7 +27,7 @@ exports.loginValidate = (data) => {
 };
 
 // vaild superadmin
-exports.superadminValidate = (data) => {
+exports.superadminValidate = data => {
   const schema = Joi.object({
     id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
@@ -41,7 +41,7 @@ exports.superadminValidate = (data) => {
 };
 
 // vaild admin
-exports.adminValidate = (data) => {
+exports.adminValidate = data => {
   const schema = Joi.object({
     id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
@@ -61,7 +61,7 @@ exports.adminValidate = (data) => {
 };
 
 // vaild master
-exports.masterValidate = (data) => {
+exports.masterValidate = data => {
   const schema = Joi.object({
     id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
@@ -74,7 +74,7 @@ exports.masterValidate = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-exports.createBettingTypeSchema = (data) => {
+exports.createBettingTypeSchema = data => {
   const schema = Joi.object({
     name: Joi.string().required().label("Name").messages({
       "any.required": `"Name" is required.`,
@@ -94,7 +94,7 @@ exports.createBettingTypeSchema = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-exports.updateBettingTypeSchema = (data) => {
+exports.updateBettingTypeSchema = data => {
   const schema = Joi.object({
     name: Joi.string().required().label("Name").messages({
       "any.required": `"Name" is required.`,
@@ -110,7 +110,7 @@ exports.updateBettingTypeSchema = (data) => {
   return schema.validate(data, { abortEarly: false });
 };
 
-exports.validateCreateLotteryType = (data) => {
+exports.validateCreateLotteryType = data => {
   const schema = Joi.object({
     name: Joi.string().required().messages({
       "any.required": `"name" is required`,
