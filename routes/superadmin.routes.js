@@ -3,13 +3,13 @@
     const superadminController = require("../controller/superadmin/superadmin.controller");
     const authmiddleware = require("../middleware/authadmin.middleware");
 
-    router.post("/create", authmiddleware.isAdmin, superadminController.createSuperadmin);
-    router.get("/get/", authmiddleware.isAdmin, superadminController.getSuperadmin);
-    router.get("/getbyid/:id", authmiddleware.isAdmin, superadminController.getSuperadminById);
-    router.put("/update/:id", authmiddleware.isAdmin, superadminController.updateSuperadmin);
-    router.delete("/delete/:id", authmiddleware.isAdmin, superadminController.deleteSuperadmin);
+    router.post("/create", authmiddleware.permissionmanagersuperadmin, superadminController.createSuperadmin);
+    router.get("/get/", authmiddleware.permissionmanagersuperadmin, superadminController.getSuperadmin);
+    router.get("/getbyid/:id", authmiddleware.permissionmanagersuperadmin, superadminController.getSuperadminById);
+    router.put("/update/:id", authmiddleware.permissionmanagersuperadmin, superadminController.updateSuperadmin);
+    router.delete("/delete/:id", authmiddleware.permissionmanagersuperadmin, superadminController.deleteSuperadmin);
     // active superadmin
-    router.put("/active/:id", authmiddleware.isAdmin, superadminController.activesuperadmin);
+    router.put("/active/:id", authmiddleware.permissionmanagersuperadmin, superadminController.activesuperadmin);
     // disactive superadmin
-    router.put("/disactive/:id", authmiddleware.isAdmin, superadminController.disactivesuperadmin);
+    router.put("/disactive/:id", authmiddleware.permissionmanagersuperadmin, superadminController.disactivesuperadmin);
     module.exports = router; 

@@ -141,6 +141,13 @@ exports.handleRefreshToken = async (refreshToken) => {
     });
   
     if (!existing) throw new Error("Invalid token");
+    if(payload.role === 'admin'){
+      const adminUser = await admin.findOne({_id: payload._id});
+      if(!adminUser){
+        throw new Error("Invalid token");
+      }
+      payload.premission = adminUser.role;
+    }
   
     const newAccessToken = jwt.sign(
       {
@@ -150,6 +157,8 @@ exports.handleRefreshToken = async (refreshToken) => {
         phone: payload.phone,
         address: payload.address,
         role: payload.role,
+        // ถ้าrole เป็น admin ก็ต้องมี premission
+        premission: payload.role === 'admin' ? payload.premission : null
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION || "1h" }
