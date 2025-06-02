@@ -1,28 +1,15 @@
 const bettingTypes = require("../../models/bettingTypes.model");
 const LotteryType = require("../../models/lotteryType.model");
 
-exports.createBettingType = async ({
-  name,
-  description,
-  code,
-  lottery_type_id,
-}) => {
+exports.createBettingType = async ({ name, description, code }) => {
   try {
-    if (!lottery_type_id || !name || !description) {
+    if (!name || !description) {
       throw new Error(
         "Missing required fields: lottery_type_id, name, or description."
       );
     }
 
-    const exists = await LotteryType.findById(lottery_type_id);
-    if (!exists) {
-      throw new Error(
-        `Lottery type with ID ${lottery_type_id} does not exist.`
-      );
-    }
-
     const newBettingType = await bettingTypes.create({
-      lottery_type_id,
       name,
       description,
       code,

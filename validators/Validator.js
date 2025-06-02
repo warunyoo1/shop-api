@@ -85,10 +85,7 @@ exports.createBettingTypeSchema = data => {
       "string.empty": `"Description" cannot be empty.`,
     }),
     code: Joi.string().allow("", null).label("Code"),
-    lottery_type_id: Joi.string().required().label("Lottery Type ID").messages({
-      "any.required": `"Lottery Type ID" is required.`,
-      "string.empty": `"Lottery Type ID" cannot be empty.`,
-    }),
+
   });
 
   return schema.validate(data, { abortEarly: false });
