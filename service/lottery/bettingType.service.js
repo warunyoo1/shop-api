@@ -24,7 +24,7 @@ exports.createBettingType = async ({ name, description, code }) => {
 
 exports.getBettingTypes = async () => {
   try {
-    const types = await bettingTypes.find().populate("lottery_type_id");
+    const types = await bettingTypes.find();
     return types;
   } catch (error) {
     console.error("Service Error - getBettingTypes:", error.message);
@@ -34,9 +34,7 @@ exports.getBettingTypes = async () => {
 
 exports.getBettingTypeById = async (id) => {
   try {
-    const bettingType = await bettingTypes
-      .findById(id)
-      .populate("lottery_type_id");
+    const bettingType = await bettingTypes.findById(id);
 
     if (!bettingType) {
       throw new Error(`Betting type with ID ${id} not found.`);
