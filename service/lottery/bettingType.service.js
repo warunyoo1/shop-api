@@ -3,12 +3,6 @@ const LotteryType = require("../../models/lotteryType.model");
 
 exports.createBettingType = async ({ name, description, code }) => {
   try {
-    if (!name || !description) {
-      throw new Error(
-        "Missing required fields: lottery_type_id, name, or description."
-      );
-    }
-
     const newBettingType = await bettingTypes.create({
       name,
       description,
