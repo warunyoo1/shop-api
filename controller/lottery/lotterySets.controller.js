@@ -19,7 +19,7 @@ exports.createLotterySets = async (req, res) => {
 
 exports.getLotterySets = async (req, res) => {
   try {
-    const lotteries = await lotteryService.getLotterySets();
+    const lotteries = await lotteryService.getLotterySets(req.query);
     return res.status(200).json({
       success: true,
       message: "Lottery Sets retrieved successfully.",

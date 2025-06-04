@@ -18,15 +18,28 @@ exports.createLotterySets = async function (data) {
   }
 };
 
-exports.getLotterySets = async function () {
+exports.getLotterySets = async function (query) {
   try {
-    const lotterySets = await LotterySets.find()
+    const { status, limit, slug } = query;
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    let lotterySets = await LotterySets.find(filter)
+      .limit(parseInt(limit) || 10)
       .populate("lottery_type_id")
       .populate({
         path: "betting_options.betting_type_id",
         model: "BettingTypes",
       });
 
+    if (slug) {
+      lotterySets = lotterySets.filter(
+        (lottery) => lottery.lottery_type_id?.slug === slug
+      );
+    }
     return lotterySets;
   } catch (error) {
     throw new Error("Error retrieving lottery sets: " + error.message);
