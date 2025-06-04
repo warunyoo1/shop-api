@@ -11,6 +11,11 @@ const lotteryTypeSchema = new mongoose.Schema(
       require: false,
       default: "",
     },
+    slug: {
+      type: String,
+      required: false,
+      default: "",
+    },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },

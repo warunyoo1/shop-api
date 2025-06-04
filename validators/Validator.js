@@ -114,6 +114,9 @@ exports.validateCreateLotteryType = (data) => {
     description: Joi.string().optional().allow("").messages({
       "string.base": `"description" must be a string`,
     }),
+    slug: Joi.string().optional().allow("").messages({
+      "string.base": `"description" must be a string`,
+    }),
   });
 
   return schema.validate(data, { abortEarly: false });
