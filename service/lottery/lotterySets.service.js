@@ -18,17 +18,46 @@ exports.createLotterySets = async function (data) {
   }
 };
 
+// exports.getLotterySets = async function (query) {
+//   try {
+//     const { status, limit, slug } = query;
+//     const filter = {};
+
+//     if (status) {
+//       filter.status = status;
+//     }
+
+//     let lotterySets = await LotterySets.find(filter)
+//       .limit(parseInt(limit) || 10)
+//       .populate("lottery_type_id")
+//       .populate({
+//         path: "betting_options.betting_type_id",
+//         model: "BettingTypes",
+//       });
+
+//     if (slug) {
+//       lotterySets = lotterySets.filter(
+//         (lottery) => lottery.lottery_type_id?.slug === slug
+//       );
+//     }
+//     return lotterySets;
+//   } catch (error) {
+//     throw new Error("Error retrieving lottery sets: " + error.message);
+//   }
+// };
+
 exports.getLotterySets = async function (query) {
   try {
-    const { status, limit, slug } = query;
-    const filter = {};
+    const { status, limit = 10, page = 1, slug } = query;
 
+    const filter = {};
     if (status) {
       filter.status = status;
     }
 
     let lotterySets = await LotterySets.find(filter)
-      .limit(parseInt(limit) || 10)
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .limit(parseInt(limit))
       .populate("lottery_type_id")
       .populate({
         path: "betting_options.betting_type_id",
@@ -40,7 +69,18 @@ exports.getLotterySets = async function (query) {
         (lottery) => lottery.lottery_type_id?.slug === slug
       );
     }
-    return lotterySets;
+
+    const totalItems = await LotterySets.countDocuments(filter);
+
+    return {
+      data: lotterySets,
+      pagination: {
+        total: totalItems,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(totalItems / parseInt(limit)),
+      },
+    };
   } catch (error) {
     throw new Error("Error retrieving lottery sets: " + error.message);
   }

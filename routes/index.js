@@ -33,4 +33,7 @@ router.use("/master", masterRoutes);
 // ส่วน lottery
 router.use("/lottery", lotteryRoutes);
 
+// ส่วนของ user lottery
+router.use("/userlottery", userRoutes);
+
 module.exports = router;
