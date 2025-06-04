@@ -23,6 +23,10 @@ const lotterySetsSchema = new mongoose.Schema(
       type: Date,
       default: true,
     },
+    status: {
+      type: String,
+      default: "",
+    },
     betting_options: [
       {
         betting_type_id: {
