@@ -12,4 +12,5 @@ router.delete("/delete/:id", authmiddleware.permissionmanagermaster, masterContr
 router.put("/active/:id", authmiddleware.permissionmanagermaster, masterController.activateMaster);
 router.put("/deactive/:id", authmiddleware.permissionmanagermaster, masterController.deactivateMaster);
 
+router.get("/getcustomer/:id", authmiddleware.permissionmanagermaster, masterController.getCustomerByMaster);
 module.exports = router;

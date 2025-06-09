@@ -1,6 +1,6 @@
 const master = require("../../models/master.model");
 const { generateMasterId } = require("../../utils/utils");
-
+const user = require("../../models/user.model");
 // เพิ่ม master
 exports.createMaster = async (
   username,
@@ -173,5 +173,15 @@ exports.deactivateMaster = async (id) => {
   if (!result) {
     return { error: "ไม่พบ master ที่ต้องการปิดใช้งาน" };
   }
+  return { data: result };
+};
+
+
+// ดึงข้อมูล customer ที่สมัครผ่าน master
+exports.getCustomerByMaster = async (masterId) => {
+  if (!masterId) {
+    return { error: "Id is required" };
+  }
+  const result = await user.find({ master_id:masterId });
   return { data: result };
 };

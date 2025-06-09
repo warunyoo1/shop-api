@@ -10,7 +10,7 @@ router.post("/register", userController.register);
 router.get("/getbyid/:id", authmiddleware.isUser, userController.getUserById);
 router.put("/update/:id", authmiddleware.isUser, userController.updateUser);
 // ส่วนของ admin จัดการ user
-router.get("/get", authmiddleware.isAdmin, userController.getAllUsers);
+router.get("/get",authmiddleware.isAdmin, userController.getAllUsers);
 router.delete("/delete/:id", authmiddleware.isAdmin, userController.deleteUser);
 router.put("/active/:id", authmiddleware.isAdmin, userController.activeUser);
 router.put(

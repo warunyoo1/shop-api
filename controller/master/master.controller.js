@@ -156,3 +156,18 @@ exports.deactivateMaster = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+// ดึงข้อมูล customer ที่สมัครผ่าน master
+exports.getCustomerByMaster = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await masterService.getCustomerByMaster(id);
+        return res.status(200).json({
+            status: "success",
+            data: result.data,
+        });
+    } catch (error) {
+        console.error('Get customer by master error:', error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
