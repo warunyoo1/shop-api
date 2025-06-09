@@ -1,6 +1,8 @@
 const master = require("../../models/master.model");
 const { generateMasterId } = require("../../utils/utils");
 const user = require("../../models/user.model");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
+
 // เพิ่ม master
 exports.createMaster = async (
   username,
@@ -9,28 +11,34 @@ exports.createMaster = async (
   phone,
   commission_percentage
 ) => {
-  const existingMaster = await master.findOne({
-    $or: [{ username }, { email }],
-  });
+  try {
+    const existingMaster = await master.findOne({
+      $or: [{ username }, { email }],
+    });
 
-  if (existingMaster) {
-    return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
+    if (existingMaster) {
+      return await handleError("Username or Email already exists", "Duplicate entry", 400);
+    }
+    const newMaster = new master({
+      username,
+      email,
+      password,
+      phone,
+      commission_percentage,
+    });
+
+    await newMaster.save();
+
+    const baseUrl = process.env.APP_BASE_URL;
+    newMaster.profileUrl = `${baseUrl}/master/${newMaster.username}`;
+
+    await newMaster.save();
+
+    return { data: newMaster };
+  } catch (error) {
+    console.error("Error creating master:", error);
+    return { error: "Error creating master " };
   }
-  const masterId = generateMasterId();
-  const baseUrl = process.env.APP_BASE_URL;
-  const profileUrl = `${baseUrl}/master/${masterId}`;
-
-  const newMaster = new master({
-    masterId: masterId,
-    username,
-    email,
-    password,
-    phone,
-    profileUrl: profileUrl,
-    commission_percentage,
-  });
-  await newMaster.save();
-  return { data: newMaster };
 };
 
 // ดึงข้อมูล master
