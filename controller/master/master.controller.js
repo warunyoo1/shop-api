@@ -2,17 +2,18 @@ const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
 const masterService = require("../../service/master/master.service");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // เพิ่ม master
 exports.createMaster = async (req, res) => {
   try {
     const { error } = validate.masterValidate(req.body);
     if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      const response = await handleError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
 
-    const { username, email, password, phone, commission_percentage } =
-      req.body;
+    const { username, email, password, phone, commission_percentage } = req.body;
     const result = await masterService.createMaster(
       username,
       email,
@@ -21,20 +22,14 @@ exports.createMaster = async (req, res) => {
       commission_percentage
     );
 
-    if (result.error) {
-      return res.status(400).json(result);
+    if (!result.success) {
+      return res.status(result.status).json(result);
     }
 
-    // await logAction(req.user.id, 'CREATE_MASTER', `Created master: ${username}`, normalizeIP(req.ip));
-    return res.status(201).json({
-      code: 201,
-      status: "success",
-      message: "Master created successfully",
-      master: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Create master error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -43,14 +38,10 @@ exports.getAllMasters = async (req, res) => {
   try {
     const { page, perPage, search } = req.query;
     const result = await masterService.getAllMasters({ page, perPage, search });
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-      pagination: result.pagination,
-    });
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Get all masters error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -58,19 +49,16 @@ exports.getAllMasters = async (req, res) => {
 exports.getMasterById = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await masterService.getMasterById(id);
-
-    if (result.error) {
-      return res.status(404).json(result);
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-    });
+    const result = await masterService.getMasterById(id);
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Get master by id error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -81,23 +69,15 @@ exports.updateMaster = async (req, res) => {
     const { error } = validate.masterValidate(req.body);
 
     if (error) {
-      return res.status(400).json({ error: error.details[0].message });
+      const response = await handleError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await masterService.updateMaster(id, req.body);
-
-    if (result.error) {
-      return res.status(404).json(result);
-    }
-
-    //await logAction(req.user.id, 'UPDATE_MASTER', `Updated master: ${id}`, normalizeIP(req.ip));
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Update master error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -105,20 +85,16 @@ exports.updateMaster = async (req, res) => {
 exports.deleteMaster = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await masterService.deleteMaster(id);
-
-    if (result.error) {
-      return res.status(404).json(result);
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
-    // await logAction(req.user.id, 'DELETE_MASTER', `Deleted master: ${id}`, normalizeIP(req.ip));
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-    });
+    const result = await masterService.deleteMaster(id);
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Delete master error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -126,20 +102,16 @@ exports.deleteMaster = async (req, res) => {
 exports.activateMaster = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await masterService.activateMaster(id);
-
-    if (result.error) {
-      return res.status(404).json(result);
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
-    // await logAction(req.user.id, 'ACTIVATE_MASTER', `Activated master: ${id}`, normalizeIP(req.ip));
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-    });
+    const result = await masterService.activateMaster(id);
+    return res.status(result.status).json(result);
   } catch (error) {
-    console.error("Activate master error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -147,34 +119,32 @@ exports.activateMaster = async (req, res) => {
 exports.deactivateMaster = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await masterService.deactivateMaster(id);
-
-        if (result.error) {
-            return res.status(404).json(result);
-        }
-
-        //await logAction(req.user.id, 'DEACTIVATE_MASTER', `Deactivated master: ${id}`, normalizeIP(req.ip));
-        return res.status(200).json({
-            status: "success",
-            data: result.data,
-        });
-    } catch (error) {
-        console.error('Deactivate master error:', error);
-        return res.status(500).json({ error: "Internal server error" });
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await masterService.deactivateMaster(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // ดึงข้อมูล customer ที่สมัครผ่าน master
 exports.getCustomerByMaster = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await masterService.getCustomerByMaster(id);
-        return res.status(200).json({
-            status: "success",
-            data: result.data,
-        });
-    } catch (error) {
-        console.error('Get customer by master error:', error);
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await masterService.getCustomerByMaster(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };

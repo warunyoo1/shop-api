@@ -6,12 +6,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ms = require("ms");
 require("dotenv").config();
- 
+const { handleAuthSuccess, handleAuthError, handleSuccess } = require("../../utils/responseHandler");
+  
 //ล็อคอิน
 exports.loginadmin = async (username, password, ip, userAgent) => {
   // ตรวจสอบข้อมูลที่จำเป็น
   if (!username || !password) {
-    return { error: "กรุณากรอก username และ password" };
+    return handleAuthError(null, "กรุณากรอก username และ password", 400);
   }
 
   // ค้นหาผู้ใช้
@@ -27,37 +28,32 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
   if (superadminUser) {
     const isMatchPassword = await bcrypt.compare(password, superadminUser.password);
     if (!isMatchPassword) {
-      return { error: "รหัสผ่านไม่ถูกต้อง" };
+      return handleAuthError(null, "รหัสผ่านไม่ถูกต้อง", 400);
     }
 
     // เช็คว่า active เป็น true หรือ false
     if (!superadminUser.active) {
-      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
+      return handleAuthError(null, "ผู้ใช้งานถูกปิดการใช้งาน", 400);
     }
     user = superadminUser;
   } else if (adminUser) {
     const isMatchPassword = await bcrypt.compare(password, adminUser.password);
     if (!isMatchPassword) {
-      return { error: "รหัสผ่านไม่ถูกต้อง" };
+      return handleAuthError(null, "รหัสผ่านไม่ถูกต้อง", 400);
     }
     // เช็คว่า active เป็น true หรือ false
     if (!adminUser.active) {
-      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
+      return handleAuthError(null, "ผู้ใช้งานถูกปิดการใช้งาน", 400);
     }
     user = adminUser;
   } else {
-    return { error: "ไม่พบผู้ใช้" };
+    return handleAuthError(null, "ไม่พบผู้ใช้", 400);
   }
 
   // ตรวจสอบ refresh token ที่มีอยู่
   const checkResult = await exports.checkExistingRefreshToken(user._id);
   if (!checkResult.success) {
-    return {
-      success: true,
-      user: user,
-      token: checkResult.token,
-      refreshToken: checkResult.refreshToken
-    };
+    return handleAuthSuccess(checkResult.token, checkResult.refreshToken, user, "เข้าสู่ระบบสำเร็จ", 200);
   }
 
   // สร้าง token และ refresh token
@@ -124,12 +120,7 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
     expiresAt
   });
 
-  return {
-    success: true,
-    user: user,
-    token,
-    refreshToken
-  };
+  return handleAuthSuccess(token, refreshToken, user, "เข้าสู่ระบบสำเร็จ", 200);
 };
 
 //รีเฟรช token
@@ -170,12 +161,14 @@ exports.handleRefreshToken = async (refreshToken) => {
 exports.logout = async (refreshToken) => {
   const existingToken = await RefreshToken.findOne({ token: refreshToken });
   if (!existingToken) {
-    console.log("No matching refresh token found");
-    throw new Error("Invalid refresh token");
+    // console.log("No matching refresh token found");
+    // throw new Error("Invalid refresh token");
+    return handleAuthError(null, "Invalid refresh token", 400);
   }
 
   await RefreshToken.deleteOne({ token: refreshToken });
-  console.log("Refresh token successfully deleted");
+  // console.log("Refresh token successfully deleted");
+  return handleSuccess(null, "ออกจากระบบสำเร็จ", 200);
 };
 
 //checkExistingRefreshToken
@@ -215,7 +208,7 @@ exports.checkExistingRefreshToken = async (userId) => {
 exports.loginMaster = async (username, password, ip, userAgent) => {
   // ตรวจสอบข้อมูลที่จำเป็น
   if (!username || !password) {
-    return { error: "กรุณากรอก username และ password" };
+    return handleAuthError(null, "กรุณากรอก username และ password", 400);
   }
 
   // ค้นหาผู้ใช้
@@ -226,21 +219,16 @@ exports.loginMaster = async (username, password, ip, userAgent) => {
   if(masterUser){
     const isMatchPassword = await bcrypt.compare(password, masterUser.password);
     if(!isMatchPassword){
-      return { error: "รหัสผ่านไม่ถูกต้อง" };
+      return handleAuthError(null, "รหัสผ่านไม่ถูกต้อง", 400);
     }
     if(!masterUser.active){
-      return { error: "ผู้ใช้งานถูกปิดการใช้งาน" };
+      return handleAuthError(null, "ผู้ใช้งานถูกปิดการใช้งาน", 400);
     }
     
     // ตรวจสอบ refresh token ที่มีอยู่
     const checkResult = await exports.checkExistingRefreshToken(masterUser._id);
     if(!checkResult.success){
-      return {
-        success: true,
-        user: masterUser,
-        token: checkResult.token,
-        refreshToken: checkResult.refreshToken
-      }
+      return handleAuthSuccess(checkResult.token, checkResult.refreshToken, masterUser, "เข้าสู่ระบบสำเร็จ", 200);
     }
 
     // สร้าง token และ refresh token
@@ -281,14 +269,9 @@ exports.loginMaster = async (username, password, ip, userAgent) => {
       expiresAt
     });
 
-    return {
-      success: true,
-      user: masterUser,
-      token,
-      refreshToken
-    };
+    return handleAuthSuccess(token, refreshToken, masterUser, "เข้าสู่ระบบสำเร็จ", 200);
   } else {
-    return { error: "ไม่พบผู้ใช้" };
+    return handleAuthError(null, "ไม่พบผู้ใช้", 400);
   }
 };
 

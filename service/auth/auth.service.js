@@ -4,20 +4,22 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ms = require("ms");
 require("dotenv").config();
+const { handleAuthSuccess, handleAuthError , handleSuccess} = require("../../utils/responseHandler");
+
 
 exports.loginUser = async (username, password, ip, userAgent) => {
   const user = await User.findOne({ username });
-  if (!user) return { success: false, message: "User not found" };
+  if (!user) return handleAuthError(null, "User not found", 400);
 
-  if (!user.active) return { success: false, message: "User is not active" };
+  if (!user.active) return handleAuthError(null, "User is not active", 400);
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return { success: false, message: "Invalid credentials" };
+  if (!isMatch) return handleAuthError(null, "Invalid credentials", 400);
 
   const checkResult = await exports.checkExistingRefreshToken(user._id);
   if (!checkResult.success) {
-    return {success: true, user: user, token:checkResult.token, refreshToken:checkResult.refreshToken };
+    return handleAuthSuccess(checkResult.token, checkResult.refreshToken, user, "เข้าสู่ระบบสำเร็จ", 200);
   }
-
+ 
   const token = jwt.sign(
     {
       _id: user._id,
@@ -57,7 +59,7 @@ exports.loginUser = async (username, password, ip, userAgent) => {
     expiresAt,
   });
 
-  return { success: true, user, token, refreshToken };
+  return handleAuthSuccess(token, refreshToken, user, "เข้าสู่ระบบสำเร็จ", 200);
 };
 
 exports.handleRefreshToken = async (refreshToken) => {
@@ -67,7 +69,7 @@ exports.handleRefreshToken = async (refreshToken) => {
     userId: payload._id,
   });
 
-  if (!existing) throw new Error("Invalid token");
+  if (!existing) return handleAuthError(null, "Invalid token", 400);
 
   const newAccessToken = jwt.sign(
     {
@@ -88,12 +90,14 @@ exports.handleRefreshToken = async (refreshToken) => {
 exports.handleLogout = async (refreshToken) => {
   const existingToken = await RefreshToken.findOne({ token: refreshToken });
   if (!existingToken) {
-    console.log("No matching refresh token found");
-    throw new Error("Invalid refresh token");
+    // console.log("No matching refresh token found");
+    // throw new Error("Invalid refresh token");
+    return handleAuthError(null, "Invalid refresh token", 400);
   }
 
   await RefreshToken.deleteOne({ token: refreshToken });
-  console.log("Refresh token successfully deleted");
+  // console.log("Refresh token successfully deleted");
+  return handleSuccess(null, "ออกจากระบบสำเร็จ", 200);
 };
 
 exports.checkExistingRefreshToken = async (userId) => {

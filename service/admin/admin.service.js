@@ -1,168 +1,188 @@
 const admin = require("../../models/admin.model");
 const superadmin = require("../../models/superadmin.model");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // create admin
 exports.createAdmin = async (username, email, password, phone, address,role) => {
-    //เช็คว่ามี username และ อีเมล์ซ้ำไหม
-    const existingAdmin = await admin.findOne({
-        $or: [{ username }, { email }]
-    });
+    try {
+        const existingAdmin = await admin.findOne({
+            $or: [{ username }, { email }]
+        });
 
-    const existingSuperadmin = await superadmin.findOne({
-        $or: [{ username }, { email }]
-    });
-
-    if(existingAdmin || existingSuperadmin){
-        return {error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว"};
+        const existingSuperadmin = await superadmin.findOne({
+            $or: [{ username }, { email }]
+        });
+    
+        if(existingAdmin || existingSuperadmin){
+            return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+        }
+        const newAdmin = new admin({username, email, password, phone, address,role});
+        const savedAdmin = await newAdmin.save();
+        return handleSuccess(savedAdmin, "สร้าง Admin สำเร็จ", 201);
+    } catch (error) {
+        return handleError(error);
     }
-    const newAdmin = new admin({username, email, password, phone, address,role});
-    await newAdmin.save();
-    return {data: newAdmin};
 };
 
 // get admin
 exports.getadmin = async ({ page = 1, perPage = 10, search }) => {
-    const query = {};
-    if(search){
-        query.$or = [
-            {username: {$regex: search, $options: "i"}},
-            {email: {$regex: search, $options: "i"}}
-        ];
-    }
-    
+    try {
+        const query = {};
+        if(search){
+            query.$or = [
+                {username: {$regex: search, $options: "i"}},
+                {email: {$regex: search, $options: "i"}}
+            ];
+        }
+        
+        const [admins, total] = await Promise.all([
+            admin.find(query)
+            .select('-password')
+            .skip((page - 1) * perPage)
+            .limit(perPage)
+            .sort({createdAt: -1}),
+            admin.countDocuments(query)
+        ]);
 
-    const [admins, total] = await Promise.all([
-        admin.find(query)
-         .select('-password')
-        .skip((page - 1) * perPage)
-        .limit(perPage)
-        .sort({createdAt: -1}),
-        admin.countDocuments(query)
-    ]);
-
-    return {
-        data: admins,
-        pagination: {
+        const pagination = {
             currentPage: page,
             perPage: perPage,
             totalItems: total,
             totalPages: Math.ceil(total / perPage)
-        }
-    };
-};
+        };
 
+        return handleSuccess(admins, "ดึงข้อมูล Admin สำเร็จ", 200, pagination);
+    } catch (error) {
+        return handleError(error);
+    }
+};
 
 // get admin by id
 exports.getadminById = async (id) => {
-    if(!id){
-        return {error: "Id is required"};
+    try {
+        if(!id){
+            return handleError(null, "กรุณาระบุ ID ของ admin", 400);
+        }
+        const result = await admin.findById(id).select('-password');
+        if(!result){
+            return handleError(null, "ไม่พบ Admin", 404);
+        }
+        return handleSuccess(result, "ดึงข้อมูล Admin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-    const result = await admin.findById(id).select('-password');
-    if(!result){
-        return {error: "Admin by id not found"};
-    }
-    return {data: result};
 };
-
 
 // update admin
 exports.updateadmin = async (id, updateData) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ admin" };
-    }
-
-    // ถ้ามีการอัพเดท username หรือ email ให้เช็คความซ้ำซ้อน
-    if (updateData.username || updateData.email) {
-        const existingAdmin = await admin.findOne({
-            $or: [
-                { username: updateData.username },
-                { email: updateData.email }
-            ],
-            _id: { $ne: id }
-        });
-
-        const existingSuperadmin = await superadmin.findOne({
-            $or: [
-                { username: updateData.username },
-                { email: updateData.email }
-            ]
-        });
-
-        if (existingAdmin || existingSuperadmin) {
-            return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ admin", 400);
         }
+
+        if (updateData.username || updateData.email) {
+            const existingAdmin = await admin.findOne({
+                $or: [
+                    { username: updateData.username },
+                    { email: updateData.email }
+                ],
+                _id: { $ne: id }
+            });
+
+            const existingSuperadmin = await superadmin.findOne({
+                $or: [
+                    { username: updateData.username },
+                    { email: updateData.email }
+                ]
+            });
+
+            if (existingAdmin || existingSuperadmin) {
+                return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+            }
+        }
+
+        updateData.updatedAt = new Date();
+
+        const result = await admin.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true }
+        ).select('-password'); 
+
+        if (!result) {
+            return handleError(null, "ไม่พบ Admin ที่ต้องการแก้ไข", 404);
+        }
+
+        return handleSuccess(result, "อัพเดท Admin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    // อัพเดทเวลาที่แก้ไข
-    updateData.updatedAt = new Date();
-
-    const result = await admin.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true }
-    ).select('-password'); 
-
-    if (!result) {
-        return { error: "ไม่พบ admin ที่ต้องการแก้ไข" };
-    }
-
-    return { data: result };
 };
-
 
 // delete admin
 exports.deleteadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ admin" };
-    }
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ admin", 400);
+        }
 
-    const result = await admin.findByIdAndDelete(id);
-    
-    if (!result) {
-        return { error: "ไม่พบ admin ที่ต้องการลบ" };
-    }
+        const result = await admin.findByIdAndDelete(id);
+        
+        if (!result) {
+            return handleError(null, "ไม่พบ Admin ที่ต้องการลบ", 404);
+        }
 
-    return { message: "ลบ admin สำเร็จ" };
+        return handleSuccess(null, "ลบ Admin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
+    }
 };
-
-
 
 // active admin
 exports.activeadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ admin" };
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ admin", 400);
+        }
+
+        const result = await admin.findByIdAndUpdate(
+            id,
+            { $set: { active: true, updatedAt: new Date() } },
+            { new: true }
+        ).select('-password');
+
+        if (!result) {
+            return handleError(null, "ไม่พบ Admin ที่ต้องการอัพเดท", 404);
+        }
+
+        return handleSuccess(result, "อัพเดทสถานะ Admin เป็น active สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    const result = await admin.findByIdAndUpdate(
-        id,
-        { $set: { active: true, updatedAt: new Date() } },
-        { new: true }
-    ).select('-password');
-
-    if (!result) {
-        return { error: "ไม่พบ admin ที่ต้องการอัพเดท" };
-    }
-
-    return { data: result };
 };
+
 // disactive admin
 exports.disactiveadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ admin" };
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ admin", 400);
+        }
+
+        const result = await admin.findByIdAndUpdate(
+            id,
+            { $set: { active: false, updatedAt: new Date() } },
+            { new: true }
+        ).select('-password');
+
+        if (!result) {
+            return handleError(null, "ไม่พบ Admin ที่ต้องการอัพเดท", 404);
+        }
+
+        return handleSuccess(result, "อัพเดทสถานะ Admin เป็น inactive สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    const result = await admin.findByIdAndUpdate(
-        id,
-        { $set: { active: false, updatedAt: new Date() } },
-        { new: true }
-    ).select('-password');
-
-    if (!result) {
-        return { error: "ไม่พบ admin ที่ต้องการอัพเดท" };
-    }
-
-    return { data: result };
-}
+};
 
 
 

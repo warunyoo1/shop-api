@@ -3,6 +3,7 @@ const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
 const userService = require('../../service/user/user.service');
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.register = async (req, res) => {
   const userId = req.user?._id || null;
@@ -25,168 +26,158 @@ exports.register = async (req, res) => {
         method: "POST",
         data: { error: error.details[0].message, input: body, referrer, ip },
       });
-      return res.status(400).json({ error: error.details[0].message });
+      const response = await handleError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await authService.registerUser(body);
-    if (!result || result.error) {
+    if (!result.success) {
       await logAction("register_failed", {
         tag: "register",
         userId,
         endpoint: fullUrl,
         method: "POST",
         data: {
-          error: result?.error || "User registration failed",
+          error: result.error || "User registration failed",
           input: body,
           referrer,
           ip,
         },
       });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: result?.error || "User registration failed",
-      });
+      return res.status(result.status).json(result);
     }
 
-    const { user } = result;
     await logAction("register_success", {
       tag: "register",
-      userId: user._id,
+      userId: result.data._id,
       endpoint: fullUrl,
       method: "POST",
       data: {
-        user: { id: user._id, username: user.username, email: user.email, ip },
+        user: { 
+          id: result.data._id, 
+          username: result.data.username, 
+          email: result.data.email 
+        },
+        ip,
         referrer,
       },
     });
 
-    return res.status(201).json({
-      code: 201,
-      status: "success",
-      message: "User registered successfully",
-      user,
-    });
-  } catch (err) {
+    return res.status(result.status).json(result);
+  } catch (error) {
     await logAction("register_error", {
       tag: "register",
       userId,
       endpoint: fullUrl,
       method: "POST",
-      data: { error: err.message, stack: err.stack, referrer },
+      data: { error: error.message, stack: error.stack, referrer },
     });
 
-    return res.status(500).json({
-      code: 500,
-      message: "Internal server error",
-      status: "error",
-      error: err.message,
-    });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
  
 // get all user
 exports.getAllUsers = async (req, res) => {
-    try {
-        const { page, perpage, search } = req.query;
-        if (!page || !perpage) {
-            return res.status(400).json({ error: "Page and perpage are required" });
-        }
-        const result = await userService.getuser({ page, perpage, search });
-        
-        if (result.error) {
-            return res.status(400).json(result);
-        }
-        return res.status(200).json({
-          status: "success",
-          data: result.data,
-          pagination: result.pagination
-        });
-
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+  try {
+    const { page, perpage, search } = req.query;
+    if (!page || !perpage) {
+      const response = await handleError(null, "กรุณาระบุ page และ perpage", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.getuser({ page, perpage, search });
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // get user by id
 exports.getUserById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await userService.getUserById(id);
-        
-        if (result.error) {
-            return res.status(404).json(result);
-        }
-        
-        return res.status(200).json({ status: "success", data: result });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.getUserById(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // update user
 exports.updateUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-        const result = await userService.updateUser(id, updateData);
-        
-        if (result.error) {
-            return res.status(400).json(result);
-        }
-        
-        return res.status(200).json({ status: "success", data: result });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.updateUser(id, req.body);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // delete user
 exports.deleteUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await userService.deleteUser(id);
-        
-        if (result.error) {
-            return res.status(404).json(result);
-        }
-        
-        return res.status(200).json({ status: "success", data: result });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.deleteUser(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // active user
 exports.activeUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await userService.activeUser(id);
-        
-        if (result.error) {
-            return res.status(400).json(result);
-        }
-        
-          return res.status(200).json({ status: "success", data: result });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.activeUser(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 // disactive user
 exports.deactiveUser = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await userService.deactiveUser(id);
-        
-        if (result.error) {
-            return res.status(400).json(result);
-        }
-        
-        return res.status(200).json({ status: "success", data: result });
-    } catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
+
+    const result = await userService.deactiveUser(id);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
 };
 
 

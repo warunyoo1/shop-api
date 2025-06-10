@@ -2,6 +2,7 @@ const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
 const adminService = require("../../service/admin/admin.service");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // create admin
 exports.createAdmin = async (req, res) => {
@@ -25,10 +26,8 @@ exports.createAdmin = async (req, res) => {
         referrer,
         body,
       });
-      return res.status(400).json({
-        status: "error",
-        message: error.details[0].message,
-      });
+      const response = await handleError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.createAdmin(
@@ -40,7 +39,7 @@ exports.createAdmin = async (req, res) => {
       body.role
     );
 
-    if (result.error) {
+    if (!result.success) {
       await logAction("create_admin_failed", {
         tag: "create_admin",
         userId,
@@ -49,26 +48,10 @@ exports.createAdmin = async (req, res) => {
         referrer,
         body,
       });
-      return res.status(400).json({
-        status: "error",
-        message: result.error,
-      });
+      return res.status(result.status).json(result);
     }
 
-    // await logAction("create_admin_success", {
-    //     tag: "create_admin",
-    //     userId,
-    //     fullUrl,
-    //     ip,
-    //     referrer,
-    //     data: result.data
-    // });
-
-    return res.status(201).json({
-      status: "success",
-      message: "สร้าง admin สำเร็จ",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (err) {
     await logAction("create_admin_failed", {
       tag: "create_admin",
@@ -78,10 +61,8 @@ exports.createAdmin = async (req, res) => {
       referrer,
       body,
     });
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    const response = await handleError(err);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -105,20 +86,7 @@ exports.getAdmin = async (req, res) => {
       search,
     });
 
-    // await logAction("get_admin_success", {
-    //     tag: "get_admin",
-    //     userId,
-    //     fullUrl,
-    //     ip,
-    //     referrer,
-    //     query: req.query
-    // });
-
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-      pagination: result.pagination,
-    });
+    return res.status(result.status).json(result);
   } catch (err) {
     await logAction("get_admin_error", {
       tag: "get_admin",
@@ -128,10 +96,8 @@ exports.getAdmin = async (req, res) => {
       referrer,
       error: err.message,
     });
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    const response = await handleError(err);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -149,49 +115,20 @@ exports.getAdminById = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
-      await logAction("get_admin_by_id_error", {
-        tag: "get_admin_by_id",
-        userId,
-        fullUrl,
-        ip,
-        referrer,
-        error: "ID is required",
-      });
-      return res.status(400).json({
-        status: "error",
-        message: "กรุณาระบุ ID",
-      });
+      // await logAction("get_admin_by_id_error", {
+      //   tag: "get_admin_by_id",
+      //   userId,
+      //   fullUrl,
+      //   ip,
+      //   referrer,
+      //   error: "ID is required",
+      // });
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.getadminById(id);
-    if (result.error) {
-      await logAction("get_admin_by_id_error", {
-        tag: "get_admin_by_id",
-        userId,
-        fullUrl,
-        ip,
-        referrer,
-        error: result.error,
-      });
-      return res.status(404).json({
-        status: "error",
-        message: result.error,
-      });
-    }
-
-    // await logAction("get_admin_by_id_success", {
-    //     tag: "get_admin_by_id",
-    //     userId,
-    //     fullUrl,
-    //     ip,
-    //     referrer,
-    //     id
-    // });
-
-    return res.status(200).json({
-      status: "success",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (err) {
     await logAction("get_admin_by_id_error", {
       tag: "get_admin_by_id",
@@ -201,10 +138,8 @@ exports.getAdminById = async (req, res) => {
       referrer,
       error: err.message,
     });
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    const response = await handleError(err);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -232,10 +167,8 @@ exports.updateAdmin = async (req, res) => {
         referrer,
         error: "ID is required",
       });
-      return res.status(400).json({
-        status: "error",
-        message: "กรุณาระบุ ID",
-      });
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
     const { error } = validate.adminValidate(body);
@@ -248,42 +181,12 @@ exports.updateAdmin = async (req, res) => {
         referrer,
         body,
       });
-      return res.status(400).json({
-        status: "error",
-        message: error.details[0].message,
-      });
+      const response = await handleError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.updateadmin(id, body);
-    if (result.error) {
-      await logAction("update_admin_failed", {
-        tag: "update_admin",
-        userId,
-        fullUrl,
-        ip,
-        referrer,
-        body,
-      });
-      return res.status(400).json({
-        status: "error",
-        message: result.error,
-      });
-    }
-
-    // await logAction("update_admin_success", {
-    //     tag: "update_admin",
-    //     userId,
-    //     fullUrl,
-    //     ip,
-    //     referrer,
-    //     data: result.data
-    // });
-
-    return res.status(200).json({
-      status: "success",
-      message: "อัพเดท admin สำเร็จ",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (err) {
     await logAction("update_admin_error", {
       tag: "update_admin",
@@ -293,10 +196,8 @@ exports.updateAdmin = async (req, res) => {
       referrer,
       error: err.message,
     });
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    const response = await handleError(err);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -322,41 +223,12 @@ exports.deleteAdmin = async (req, res) => {
         referrer,
         error: "ID is required",
       });
-      return res.status(400).json({
-        status: "error",
-        message: "กรุณาระบุ ID",
-      });
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.deleteadmin(id);
-    if (result.error) {
-      await logAction("delete_admin_failed", {
-        tag: "delete_admin",
-        userId,
-        fullUrl,
-        ip,
-        referrer,
-        error: result.error,
-      });
-      return res.status(400).json({
-        status: "error",
-        message: result.error,
-      });
-    }
-
-    // await logAction("delete_admin_success", {
-    //     tag: "delete_admin",
-    //     userId,
-    //     fullUrl,
-    //     ip,
-    //     referrer,
-    //     id
-    // });
-
-    return res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    return res.status(result.status).json(result);
   } catch (err) {
     await logAction("delete_admin_error", {
       tag: "delete_admin",
@@ -366,10 +238,8 @@ exports.deleteAdmin = async (req, res) => {
       referrer,
       error: err.message,
     });
-    return res.status(500).json({
-      status: "error",
-      message: err.message,
-    });
+    const response = await handleError(err);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -394,43 +264,12 @@ exports.activeadmin = async (req, res) => {
         method: "PUT",
         data: { error: "Id is required", referrer, ip },
       });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: "Id is required",
-      });
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.activeadmin(id);
-    if (result.error) {
-      await logAction("active_admin_error", {
-        tag: "active_admin",
-        userId,
-        endpoint: fullUrl,
-        method: "PUT",
-        data: { error: result.error, referrer, ip },
-      });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: result.error,
-      });
-    }
-
-    await logAction("active_admin_success", {
-      tag: "active_admin",
-      userId,
-      endpoint: fullUrl,
-      method: "PUT",
-      data: { adminId: id, referrer, ip },
-    });
-
-    return res.status(200).json({
-      code: 200,
-      status: "success",
-      message: "อัพเดทสถานะ admin เป็น active สำเร็จ",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (error) {
     await logAction("active_admin_error", {
       tag: "active_admin",
@@ -439,12 +278,8 @@ exports.activeadmin = async (req, res) => {
       method: "PUT",
       data: { error: error.message, stack: error.stack, referrer, ip },
     });
-    return res.status(500).json({
-      code: 500,
-      status: "error",
-      message: "Internal server error",
-      error: error.message,
-    });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };
 
@@ -469,43 +304,12 @@ exports.disactiveadmin = async (req, res) => {
         method: "PUT",
         data: { error: "Id is required", referrer, ip },
       });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: "Id is required",
-      });
+      const response = await handleError(null, "กรุณาระบุ ID", 400);
+      return res.status(response.status).json(response);
     }
 
     const result = await adminService.disactiveadmin(id);
-    if (result.error) {
-      await logAction("disactive_admin_error", {
-        tag: "disactive_admin",
-        userId,
-        endpoint: fullUrl,
-        method: "PUT",
-        data: { error: result.error, referrer, ip },
-      });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: result.error,
-      });
-    }
-
-    await logAction("disactive_admin_success", {
-      tag: "disactive_admin",
-      userId,
-      endpoint: fullUrl,
-      method: "PUT",
-      data: { adminId: id, referrer, ip },
-    });
-
-    return res.status(200).json({
-      code: 200,
-      status: "success",
-      message: "อัพเดทสถานะ admin เป็น inactive สำเร็จ",
-      data: result.data,
-    });
+    return res.status(result.status).json(result);
   } catch (error) {
     await logAction("disactive_admin_error", {
       tag: "disactive_admin",
@@ -514,11 +318,7 @@ exports.disactiveadmin = async (req, res) => {
       method: "PUT",
       data: { error: error.message, stack: error.stack, referrer, ip },
     });
-    return res.status(500).json({
-      code: 500,
-      status: "error",
-      message: "Internal server error",
-      error: error.message,
-    });
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
   }
 };

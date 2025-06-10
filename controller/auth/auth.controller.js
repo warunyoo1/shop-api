@@ -7,6 +7,7 @@ const {
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
+const { handleAuthSuccess, handleAuthError } = require("../../utils/responseHandler");
 
 exports.login = async (req, res) => {
   const ipRaw =
@@ -29,12 +30,12 @@ exports.login = async (req, res) => {
         method: "POST",
         data: { error: error.details[0].message, input: req.body, referrer },
       });
-      return res.status(400).json({ error: error.details[0].message });
+      const response = await handleAuthError(error, error.details[0].message, 400);
+      return res.status(response.status).json(response);
     }
  
     const result = await loginUser(username, password, ip, userAgent);
-
-    if (result.success === false) {
+    if (!result.success) {
       await logAction("login_failed", {
         tag: "login",
         endpoint: fullUrl,
@@ -46,101 +47,85 @@ exports.login = async (req, res) => {
           ip,
         },
       });
-      return res.status(400).json({
-        code: 400,
-        status: "error",
-        message: result.message,
-      });
+      return res.status(result.status).json(result);
     }
-
-    if (!result || result.error) {
-      await logAction("login_failed", {
-        tag: "login",
-        endpoint: fullUrl,
-        method: "POST",
-        data: {
-          error: result?.error || "Invalid login",
-          input: req.body,
-          referrer,
-          ip,
-        },
-      });
-      return res.status(401).json({
-        code: 401,
-        status: "error",
-        message: result?.error || "Invalid credentials",
-      });
-    }
-
-    const { user, token } = result;
 
     await logAction("login_success", {
       tag: "login",
       method: "POST",
-      userId: user._id,
+      userId: result.user._id,
       endpoint: fullUrl,
       data: {
-        user: { id: user._id, username: user.username, email: user.email },
+        user: { 
+          id: result.user._id, 
+          username: result.user.username, 
+          email: result.user.email 
+        },
         referrer,
         ip,
       },
     });
 
-    return res.status(200).json({
-      code: 200,
-      status: "success",
-      message: "Login successful",
-      token,
-      refreshToken: result.refreshToken,
-    });
-  } catch (err) {
+    // ลบ user ออกจาก result
+    delete result.user;
+    console.log(result);
+
+    return res.status(result.status).json(result);
+
+  } catch (error) {
     await logAction("login_error", {
       tag: "login",
       method: "POST",
       endpoint: fullUrl,
-      data: { error: err.message, stack: err.stack, referrer, ip },
+      data: { error: error.message, stack: error.stack, referrer, ip },
     });
 
-    return res.status(500).json({
-      code: 500,
-      message: "Internal server error",
-      status: "error",
-      error: err.message,
-    });
+    const response = await handleAuthError(error);
+    return res.status(response.status).json(response);
   }
 };
 
 exports.refreshToken = async (req, res) => {
   const authorizationHeader = req.headers["authorization"];
-  if (!authorizationHeader)
-    return res.status(400).json({ error: "Missing authorization header" });
+  if (!authorizationHeader) {
+    const response = await handleAuthError(null, "กรุณาระบุ authorization header", 400);
+    return res.status(response.status).json(response);
+  }
 
   const token = authorizationHeader.split(" ")[1];
-  if (!token) return res.status(400).json({ error: "Missing token" });
+  if (!token) {
+    const response = await handleAuthError(null, "กรุณาระบุ token", 400);
+    return res.status(response.status).json(response);
+  }
 
   try {
-    const newToken = await handleRefreshToken(token);
-
-    return res.status(200).json({ token: newToken });
-  } catch (err) {
-    return res
-      .status(403)
-      .json({ error: err.message || "Invalid or expired token" });
+    const result = await handleRefreshToken(token);
+    const response = await handleAuthSuccess(result, null, null, "รีเฟรชโทเค็นสำเร็จ");
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleAuthError(error, "โทเค็นไม่ถูกต้องหรือหมดอายุ", 403);
+    return res.status(response.status).json(response);
   }
 };
 
 exports.logout = async (req, res) => {
   const authorizationHeader = req.headers["authorization"];
-  if (!authorizationHeader)
-    return res.status(400).json({ error: "Missing authorization header" });
+  if (!authorizationHeader) {
+    const response = await handleAuthError(null, "กรุณาระบุ authorization header", 400);
+    return res.status(response.status).json(response);
+  }
 
   const token = authorizationHeader.split(" ")[1];
-  if (!token) return res.status(400).json({ error: "Missing token" });
+  if (!token) {
+    const response = await handleAuthError(null, "กรุณาระบุ token", 400);
+    return res.status(response.status).json(response);
+  }
 
   try {
-    await handleLogout(token);
-    return res.status(200).json({ message: "Logged out successfully" });
-  } catch (err) {
-    return res.status(500).json({ error: "Failed to logout" });
+    const result = await handleLogout(token);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleAuthError(error);
+    return res.status(response.status).json(response);
   }
 };

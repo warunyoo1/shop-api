@@ -1,162 +1,187 @@
 const superadmin = require("../../models/superadmin.model");
 const admin = require("../../models/admin.model");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
+
 exports.createSuperadmin = async ({ username, email, password, phone, address}) => {
-    //เช็คว่ามี username และ อีเมล์ซ้ำไหม
-    const existingSuperadmin = await superadmin.findOne({
-        $or: [{ username }, { email }]
-    });
+    try {
+        const existingSuperadmin = await superadmin.findOne({
+            $or: [{ username }, { email }]
+        });
 
-    const existingAdmin = await admin.findOne({
-        $or: [{ username }, { email }]
-    });
+        const existingAdmin = await admin.findOne({
+            $or: [{ username }, { email }]
+        });
 
-    if (existingSuperadmin || existingAdmin) {
-        return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
+        if (existingSuperadmin || existingAdmin) {
+            return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+        }
+
+        const newSuperadmin = new superadmin({
+            username,
+            email,
+            password,
+            phone,
+            address
+        });
+
+        const savedSuperadmin = await newSuperadmin.save();
+        return handleSuccess(savedSuperadmin, "สร้าง Superadmin สำเร็จ", 201);
+    } catch (error) {
+        return handleError(error);
     }
-
-    const newSuperadmin = new superadmin({
-        username,
-        email,
-        password,
-        phone,
-        address
-    });
-
-    return await newSuperadmin.save();
 };
 
 exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
-    const query = {};
-    
-    // สร้างเงื่อนไขการค้นหา
-    if (search) {
-        query.$or = [
-            { username: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { phone: { $regex: search, $options: 'i' } }
-        ];
-    }
+    try {
+        const query = {};
+        
+        if (search) {
+            query.$or = [
+                { username: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } }
+            ];
+        }
 
-    // คำนวณ skip สำหรับ pagination
-    const skip = (page - 1) * perPage;
+        const skip = (page - 1) * perPage;
 
-    // ดึงข้อมูลพร้อม pagination
-    const [superadmins, total] = await Promise.all([
-        superadmin.find(query)
-            .select('-password')
-            .skip(skip)
-            .limit(perPage)
-            .sort({ createdAt: -1 }),
-        superadmin.countDocuments(query)
-    ]);
- 
-    return {
-        data: superadmins,
-        pagination: {
+        const [superadmins, total] = await Promise.all([
+            superadmin.find(query)
+                .select('-password')
+                .skip(skip)
+                .limit(perPage)
+                .sort({ createdAt: -1 }),
+            superadmin.countDocuments(query)
+        ]);
+
+        const pagination = {
             currentPage: page,
             perPage: perPage,
             totalItems: total,
             totalPages: Math.ceil(total / perPage)
-        }
-    };
+        };
+     
+        return handleSuccess(superadmins, "ดึงข้อมูล Superadmin สำเร็จ", 200, pagination);
+    } catch (error) {
+        return handleError(error);
+    }
 };
 
 exports.getSuperadminById = async (id) => {
-    const result = await superadmin.findById(id).select('-password');
-    if(!result){
-        return {error: "Superadmin by id  not found"};
+    try {
+        const result = await superadmin.findById(id).select('-password');
+        if(!result){
+            return handleError(null, "ไม่พบ Superadmin", 404);
+        }
+        return handleSuccess(result, "ดึงข้อมูล Superadmin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-    return {data: result};
 };
 
 exports.updateSuperadmin = async (id, updateData) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ superadmin" };
-    }
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
+        } 
 
-    // ถ้ามีการอัพเดท username หรือ email ให้เช็คความซ้ำซ้อน
-    if (updateData.username || updateData.email) {
-        const existingSuperadmin = await superadmin.findOne({
-            $or: [
-                { username: updateData.username },
-                { email: updateData.email }
-            ],
-            _id: { $ne: id }
-        });
+        if (updateData.username || updateData.email) {
+            const existingSuperadmin = await superadmin.findOne({
+                $or: [
+                    { username: updateData.username },
+                    { email: updateData.email }
+                ],
+                _id: { $ne: id }
+            });
 
-        const existingAdmin = await admin.findOne({
-            $or: [
-                { username: updateData.username },
-                { email: updateData.email }
-            ]
-        });
+            const existingAdmin = await admin.findOne({
+                $or: [
+                    { username: updateData.username },
+                    { email: updateData.email }
+                ]
+            });
 
-        if (existingSuperadmin || existingAdmin) {
-            return { error: "Username หรือ Email นี้มีอยู่ในระบบแล้ว" };
+            if (existingSuperadmin || existingAdmin) {
+                return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+            }
         }
+
+        updateData.updatedAt = new Date();
+
+        const updated = await superadmin.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true }
+        ).select('-password');
+
+        if (!updated) {
+            return handleError(null, "ไม่พบ Superadmin ที่ต้องการอัพเดท", 404);
+        }
+
+        return handleSuccess(updated, "อัพเดท Superadmin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    // อัพเดทเวลาที่แก้ไข
-    updateData.updatedAt = new Date();
-
-    return await superadmin.findByIdAndUpdate(
-        id,
-        { $set: updateData },
-        { new: true }
-    ).select('-password');
-
 };
 
 exports.deleteSuperadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ superadmin" };
-    }
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
+        }
 
-    const result = await superadmin.findByIdAndDelete(id);
-    
-    if (!result) {
-        return { error: "ไม่พบ superadmin ที่ต้องการลบ" };
-    }
+        const result = await superadmin.findByIdAndDelete(id);
+        
+        if (!result) {
+            return handleError(null, "ไม่พบ superadmin ที่ต้องการลบ", 404);
+        }
 
-    return { message: "ลบ superadmin สำเร็จ" };
+        return handleSuccess(null, "ลบ superadmin สำเร็จ");
+    } catch (error) {
+        return handleError(error);
+    }
 };
 
-
-
-// active superadmin
 exports.activesuperadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ superadmin" };
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
+        }
+
+        const result = await superadmin.findByIdAndUpdate(
+            id,
+            { $set: { active: true, updatedAt: new Date() } },
+            { new: true }
+        ).select('-password');
+
+        if (!result) {
+            return handleError(null, "ไม่พบ superadmin ที่ต้องการอัพเดท", 404);
+        }
+
+        return handleSuccess(result, "อัพเดทสถานะ superadmin เป็น active สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    const result = await superadmin.findByIdAndUpdate(
-        id,
-        { $set: { active: true, updatedAt: new Date() } },
-        { new: true }
-    ).select('-password');
-
-    if (!result) {
-        return { error: "ไม่พบ superadmin ที่ต้องการอัพเดท" };
-    }
-
-    return { data: result };
 };
 
-// disactive superadmin
 exports.disactivesuperadmin = async (id) => {
-    if (!id) {
-        return { error: "กรุณาระบุ ID ของ superadmin" };
+    try {
+        if (!id) {
+            return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
+        }
+
+        const result = await superadmin.findByIdAndUpdate(
+            id,
+            { $set: { active: false, updatedAt: new Date() } },
+            { new: true }
+        ).select('-password');
+
+        if (!result) {
+            return handleError(null, "ไม่พบ superadmin ที่ต้องการอัพเดท", 404);
+        }
+
+        return handleSuccess(result, "อัพเดทสถานะ superadmin เป็น inactive สำเร็จ");
+    } catch (error) {
+        return handleError(error);
     }
-
-    const result = await superadmin.findByIdAndUpdate(
-        id,
-        { $set: { active: false, updatedAt: new Date() } },
-        { new: true }
-    ).select('-password');
-
-    if (!result) {
-        return { error: "ไม่พบ superadmin ที่ต้องการอัพเดท" };
-    }
-
-    return { data: result };
 };
