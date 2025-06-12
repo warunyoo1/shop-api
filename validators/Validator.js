@@ -5,7 +5,8 @@ exports.RegisterValidate = (data) => {
     username: Joi.string().min(5).required(),
     password: Joi.string().min(6).required(),
     phone: Joi.string().min(10).max(15).required(),
-    master_id: Joi.string().allow(null).optional(),
+    master_id: Joi.string().allow('', null).optional(),
+
   });
 
   return schema.validate(data, { abortEarly: false });
