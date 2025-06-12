@@ -4,6 +4,7 @@ const Master = require("../../models/master.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.registerUser = async ({
+  name_user,
   username,
   password,
   phone,
@@ -30,6 +31,7 @@ exports.registerUser = async ({
     }
 
     const user = new User({
+      name_user,
       username,
       password,
       phone,
