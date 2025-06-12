@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, default: "user" },
   credit: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
+  bank_name: { type: String, default: "" },
+  bank_number: { type: String, default: "" },
   master_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Master",

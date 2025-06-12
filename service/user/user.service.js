@@ -8,6 +8,8 @@ exports.registerUser = async ({
   password,
   phone,
   master_id = null,
+  bank_name,
+  bank_number,
 }) => {
   try {
     const existingUsername = await User.findOne({ username });
@@ -27,7 +29,14 @@ exports.registerUser = async ({
       }
     }
 
-    const user = new User({ username, password, phone, master_id });
+    const user = new User({
+      username,
+      password,
+      phone,
+      master_id,
+      bank_name,
+      bank_number,
+    });
     const savedUser = await user.save();
 
     return handleSuccess(savedUser, "สมัครสมาชิกสำเร็จ", 201);
