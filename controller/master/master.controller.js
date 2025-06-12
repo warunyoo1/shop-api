@@ -13,7 +13,8 @@ exports.createMaster = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const { username, email, password, phone, commission_percentage } = req.body;
+    const { username, email, password, phone, commission_percentage } =
+      req.body;
     const result = await masterService.createMaster(
       username,
       email,
@@ -30,6 +31,44 @@ exports.createMaster = async (req, res) => {
   } catch (error) {
     const response = await handleError(error);
     return res.status(response.status).json(response);
+  }
+};
+
+exports.redirectById = async (id) => {
+  try {
+    const master = await masterService.findById(id);
+    if (!master) {
+      return handleError(null, "Master not found", 404);
+    }
+    return handleSuccess(
+      { profileUrl: master.profileUrl },
+      "Redirect success",
+      200
+    );
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+exports.getBySlug = async (slug) => {
+  try {
+    const master = await masterService.findOne({ slug });
+    if (!master) {
+      return handleError(null, "Master not found", 404);
+    }
+    return handleSuccess(
+      {
+        id: master._id,
+        username: master.username,
+        email: master.email,
+        slug: master.slug,
+        profileUrl: master.profileUrl,
+      },
+      "Fetch Master success",
+      200
+    );
+  } catch (error) {
+    return handleError(error);
   }
 };
 

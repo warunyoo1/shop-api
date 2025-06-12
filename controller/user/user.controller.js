@@ -1,8 +1,9 @@
 const authService = require("../../service/user/user.service");
+const Master = require("../../models/master.model");
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
-const userService = require('../../service/user/user.service');
+const userService = require("../../service/user/user.service");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.register = async (req, res) => {
@@ -30,7 +31,28 @@ exports.register = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const result = await authService.registerUser(body);
+    let master_id = null;
+    if (body.master_id) {
+      const usernameFromUrl = body.master_id.trim().split("/").pop();
+      const master = await Master.findOne({ username: usernameFromUrl });
+
+      if (!master) {
+        const response = await handleError(
+          null,
+          "ไม่พบ Master จาก username ที่ระบุ",
+          404
+        );
+        return res.status(response.status).json(response);
+      }
+      master_id = master._id;
+      body.master_id = master_id;
+    }
+
+    const result = await authService.registerUser({
+      ...body,
+      master_id,
+    });
+
     if (!result.success) {
       await logAction("register_failed", {
         tag: "register",
@@ -53,10 +75,10 @@ exports.register = async (req, res) => {
       endpoint: fullUrl,
       method: "POST",
       data: {
-        user: { 
-          id: result.data._id, 
-          username: result.data.username, 
-          email: result.data.email 
+        user: {
+          id: result.data._id,
+          username: result.data.username,
+          email: result.data.email,
         },
         ip,
         referrer,
@@ -77,13 +99,17 @@ exports.register = async (req, res) => {
     return res.status(response.status).json(response);
   }
 };
- 
+
 // get all user
 exports.getAllUsers = async (req, res) => {
   try {
     const { page, perpage, search } = req.query;
     if (!page || !perpage) {
-      const response = await handleError(null, "กรุณาระบุ page และ perpage", 400);
+      const response = await handleError(
+        null,
+        "กรุณาระบุ page และ perpage",
+        400
+      );
       return res.status(response.status).json(response);
     }
 
@@ -179,5 +205,3 @@ exports.deactiveUser = async (req, res) => {
     return res.status(response.status).json(response);
   }
 };
-
-

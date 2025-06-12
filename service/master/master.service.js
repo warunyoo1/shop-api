@@ -2,7 +2,7 @@ const master = require("../../models/master.model");
 const { generateMasterId } = require("../../utils/utils");
 const user = require("../../models/user.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
- 
+
 // เพิ่ม master
 exports.createMaster = async (
   username,
@@ -19,22 +19,62 @@ exports.createMaster = async (
     if (existingMaster) {
       return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
     }
+
     const newMaster = new master({
       username,
       email,
-      password,
+      password, 
       phone,
       commission_percentage,
     });
 
-    await newMaster.save();
-
-    const baseUrl = process.env.APP_BASE_URL;
-    newMaster.profileUrl = `${baseUrl}/master/${newMaster.username}`;
-
     const savedMaster = await newMaster.save();
 
-    return handleSuccess(savedMaster, "สร้าง Master สำเร็จ", 201);
+    return handleSuccess(
+      {
+        id: savedMaster._id,
+        username: savedMaster.username,
+        email: savedMaster.email,
+        slug: savedMaster.slug,
+        profileUrl: savedMaster.profileUrl,
+      },
+      "สร้าง Master สำเร็จ",
+      201
+    );
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+exports.redirectById = async (id) => {
+  try {
+    const master = await master.findById(id);
+    if (!master) {
+      return handleError(null, "Master not found", 404);
+    }
+    return handleSuccess({ slug: master.slug }, "Redirect success", 200);
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+exports.getBySlug = async (slug) => {
+  try {
+    const master = await master.findOne({ slug });
+    if (!master) {
+      return handleError(null, "Master not found", 404);
+    }
+    return handleSuccess(
+      {
+        id: master._id,
+        username: master.username,
+        email: master.email,
+        slug: master.slug,
+        profileUrl: master.profileUrl,
+      },
+      "Fetch Master success",
+      200
+    );
   } catch (error) {
     return handleError(error);
   }
@@ -61,14 +101,14 @@ exports.getAllMasters = async ({ page = 1, perPage = 10, search }) => {
         .limit(perPage)
         .sort({ createdAt: -1 })
         .select("-password"),
-      master.countDocuments(query)
+      master.countDocuments(query),
     ]);
 
     const pagination = {
       currentPage: parseInt(page),
       perPage: parseInt(perPage),
       totalItems: total,
-      totalPages: Math.ceil(total / perPage)
+      totalPages: Math.ceil(total / perPage),
     };
 
     return handleSuccess(masters, "ดึงข้อมูล Master สำเร็จ", 200, pagination);

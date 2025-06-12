@@ -1,19 +1,33 @@
+const mongoose = require("mongoose");
 const User = require("../../models/user.model");
+const Master = require("../../models/master.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
-exports.registerUser = async ({ username, email, password, phone, master_id = null }) => {
+exports.registerUser = async ({
+  username,
+  password,
+  phone,
+  master_id = null,
+}) => {
   try {
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return handleError(null, "Email นี้มีอยู่ในระบบแล้ว", 400);
-    }
-
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
       return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
 
-    const user = new User({ username, email, password, phone, master_id });
+    if (master_id) {
+      const isValid = mongoose.Types.ObjectId.isValid(master_id);
+      if (!isValid) {
+        return handleError(null, "master_id ไม่ถูกต้อง", 400);
+      }
+
+      const master = await Master.findById(master_id);
+      if (!master) {
+        return handleError(null, "ไม่พบ Master ที่ระบุ", 404);
+      }
+    }
+
+    const user = new User({ username, password, phone, master_id });
     const savedUser = await user.save();
 
     return handleSuccess(savedUser, "สมัครสมาชิกสำเร็จ", 201);
@@ -28,9 +42,9 @@ exports.getuser = async ({ page = 1, perPage = 10, search }) => {
     const query = {};
     if (search) {
       query.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } }
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -38,25 +52,25 @@ exports.getuser = async ({ page = 1, perPage = 10, search }) => {
 
     const [users, total] = await Promise.all([
       User.find(query)
-        .select('-password')
+        .select("-password")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(perPage),
-      User.countDocuments(query)
+      User.countDocuments(query),
     ]);
 
     const pagination = {
       currentPage: parseInt(page),
       perPage: parseInt(perPage),
       totalItems: total,
-      totalPages: Math.ceil(total / perPage)
+      totalPages: Math.ceil(total / perPage),
     };
 
     return handleSuccess(users, "ดึงข้อมูล User สำเร็จ", 200, pagination);
   } catch (error) {
     return handleError(error);
   }
-}; 
+};
 
 // get user by id
 exports.getUserById = async (userId) => {
@@ -65,7 +79,7 @@ exports.getUserById = async (userId) => {
       return handleError(null, "กรุณาระบุ ID ของ User", 400);
     }
 
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId).select("-password");
     if (!user) {
       return handleError(null, "ไม่พบ User", 404);
     }
@@ -85,15 +99,16 @@ exports.updateUser = async (userId, updateData) => {
 
     if (updateData.username || updateData.email) {
       const existingUser = await User.findOne({
-        $or: [
-          { username: updateData.username },
-          { email: updateData.email }
-        ],
-        _id: { $ne: userId }
+        $or: [{ username: updateData.username }, { email: updateData.email }],
+        _id: { $ne: userId },
       });
 
       if (existingUser) {
-        return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+        return handleError(
+          null,
+          "Username หรือ Email นี้มีอยู่ในระบบแล้ว",
+          400
+        );
       }
     }
 
@@ -101,7 +116,7 @@ exports.updateUser = async (userId, updateData) => {
       userId,
       { $set: updateData },
       { new: true }
-    ).select('-password');
+    ).select("-password");
 
     if (!user) {
       return handleError(null, "ไม่พบ User ที่ต้องการแก้ไข", 404);
@@ -112,7 +127,7 @@ exports.updateUser = async (userId, updateData) => {
     return handleError(error);
   }
 };
- 
+
 // delete user
 exports.deleteUser = async (userId) => {
   try {
@@ -142,7 +157,7 @@ exports.activeUser = async (userId) => {
       userId,
       { $set: { active: true } },
       { new: true }
-    ).select('-password');
+    ).select("-password");
 
     if (!user) {
       return handleError(null, "ไม่พบ User ที่ต้องการเปิดใช้งาน", 404);
@@ -165,7 +180,7 @@ exports.deactiveUser = async (userId) => {
       userId,
       { $set: { active: false } },
       { new: true }
-    ).select('-password');
+    ).select("-password");
 
     if (!user) {
       return handleError(null, "ไม่พบ User ที่ต้องการปิดใช้งาน", 404);
@@ -176,5 +191,3 @@ exports.deactiveUser = async (userId) => {
     return handleError(error);
   }
 };
-
- 
