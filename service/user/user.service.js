@@ -15,6 +15,7 @@ exports.registerUser = async ({
   master_id = null,
   bank_name,
   bank_number,
+  user_id = null,
 }) => {
   try {
     const existingPhone = await User.findOne({ phone });
@@ -34,6 +35,16 @@ exports.registerUser = async ({
       }
     }
 
+    let referralUserId = null;
+    if (user_id) {
+      const parts = user_id.trim().split("/");
+      const referralCode = parts[parts.length - 1];
+      const refUser = await User.findOne({ referral_code: referralCode });
+      if (refUser) {
+        referralUserId = refUser._id;
+      }
+    }
+
     const referral_code = await generateReferralCode();
 
     const user = new User({
@@ -45,6 +56,7 @@ exports.registerUser = async ({
       bank_name,
       bank_number,
       referral_code: referral_code,
+      referral_user: referralUserId,
     });
     const savedUser = await user.save();
     const responseData = await formatCreateUserResponse(savedUser);

@@ -10,6 +10,7 @@ exports.RegisterValidate = (data) => {
     bank_number: Joi.string().allow("", null).optional(),
     full_name: Joi.string().allow("", null).optional(),
     referral_link : Joi.string().allow("", null).optional(),
+    user_id: Joi.string().allow("", null).optional(),
   });
 
   return schema.validate(data, { abortEarly: false });

@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
   bank_number: { type: String, default: "" },
   referral_link: { type: String, default: "" },
   referral_code: { type: String, default: "" },
+  referral_user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
   master_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Master",
