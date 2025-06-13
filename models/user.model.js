@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const slugify = require("slugify");
 
 const userSchema = new mongoose.Schema({
   name_user: { type: String, default: "" },
@@ -13,6 +14,9 @@ const userSchema = new mongoose.Schema({
   active: { type: Boolean, default: true },
   bank_name: { type: String, default: "" },
   bank_number: { type: String, default: "" },
+  slug: { type: String, default: "" },
+  profileUrl: { type: String, default: "" },
+  referral_code: { type: String, default: "" },
   master_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Master",
@@ -28,12 +32,13 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.pre("findOneAndUpdate", async function (next) {
-  const update = this.getUpdate();
-  if (update && update.$set && update.$set.password) {
-    update.$set.password = await bcrypt.hash(update.$set.password, 10);
+
+userSchema.pre("save", function (next) {
+  if (this.isModified("referral_code") && this.referral_code) {
+    const slug = slugify(this.referral_code, { lower: true, strict: true });
+    this.slug = slug;
+    this.profileUrl = `${process.env.APP_BASE_URL}/user/${slug}`;
   }
   next();
 });
-
 module.exports = mongoose.model("User", userSchema);

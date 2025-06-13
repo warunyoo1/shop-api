@@ -32,15 +32,14 @@ masterSchema.pre("save", async function (next) {
 
 masterSchema.pre("findOneAndUpdate", async function (next) {
   const update = this.getUpdate();
-  if (update && update.$set && update.$set.password) {
-    update.$set.password = await bcrypt.hash(update.$set.password, 10);
-  }
+
   if (update && update.$set && update.$set.username) {
     update.$set.profileUrl = `${process.env.APP_BASE_URL}/master/${slugify(
       update.$set.username,
       { lower: true, strict: true }
     )}`;
   }
+
   next();
 });
 

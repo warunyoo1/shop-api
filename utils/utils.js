@@ -1,4 +1,5 @@
 const { v4: uuid4 } = require("uuid");
+const User = require("../models/user.model");
 
 exports.normalizeIP = (ip) => {
   if (!ip) return null;
@@ -15,4 +16,21 @@ exports.generateMasterId = function () {
   const dateStr = `${y}${m}${d}`;
 
   return `MASTER${dateStr}_${uuid4()}`;
+};
+
+exports.generateReferralCode = async function () {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code;
+
+  while (true) {
+    code = "";
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const existing = await User.findOne({ referral_code: code });
+    if (!existing) break;
+  }
+
+  return code;
 };

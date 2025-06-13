@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Master = require("../../models/master.model");
+const { generateReferralCode } = require("../../utils/utils");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.registerUser = async ({
@@ -30,6 +31,8 @@ exports.registerUser = async ({
       }
     }
 
+    const referral_code = await generateReferralCode();
+
     const user = new User({
       name_user,
       username,
@@ -38,6 +41,7 @@ exports.registerUser = async ({
       master_id,
       bank_name,
       bank_number,
+      referral_code: referral_code,
     });
     const savedUser = await user.save();
 
