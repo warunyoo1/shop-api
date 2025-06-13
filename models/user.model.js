@@ -3,18 +3,18 @@ const bcrypt = require("bcrypt");
 const slugify = require("slugify");
 
 const userSchema = new mongoose.Schema({
-  name_user: { type: String, default: "" },
+  full_name: { type: String, default: "" },
   username: { type: String },
   password: { type: String },
   phone: { type: String, default: "" },
   address: { type: String, default: "" },
-  profilePicture: { type: String, default: "" },
+  profile_picture: { type: String, default: "" },
   role: { type: String, default: "user" },
   credit: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
   bank_name: { type: String, default: "" },
   bank_number: { type: String, default: "" },
-  profileUrl: { type: String, default: "" },
+  referral_link: { type: String, default: "" },
   referral_code: { type: String, default: "" },
   master_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +34,7 @@ userSchema.pre("save", async function (next) {
 userSchema.pre("save", function (next) {
   if (this.isModified("referral_code") && this.referral_code) {
     const slug = slugify(this.referral_code);
-    this.profileUrl = `${process.env.APP_BASE_URL}/user/${slug}`;
+    this.referral_link = `${process.env.APP_BASE_URL}/user/${slug}`;
   }
   next();
 });

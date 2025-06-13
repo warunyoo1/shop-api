@@ -5,7 +5,7 @@ const { generateReferralCode } = require("../../utils/utils");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.registerUser = async ({
-  name_user,
+  full_name,
   username,
   password,
   phone,
@@ -34,7 +34,7 @@ exports.registerUser = async ({
     const referral_code = await generateReferralCode();
 
     const user = new User({
-      name_user,
+      full_name,
       username,
       password,
       phone,
