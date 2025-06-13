@@ -17,11 +17,6 @@ exports.registerUser = async ({
   bank_number,
 }) => {
   try {
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
-    }
-
     const existingPhone = await User.findOne({ phone });
     if (existingPhone) {
       return handleError(null, "เบอร์โทรนี้มีอยุ่ในระบบเเล้ว", 400);
