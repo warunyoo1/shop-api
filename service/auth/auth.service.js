@@ -1,11 +1,17 @@
 const User = require("../../models/user.model");
+const Master = require("../../models/master.model");
+const Admin = require("../../models/admin.model");
+const Superadmin = require("../../models/superadmin.model");
 const RefreshToken = require("../../models/refreshToken.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const ms = require("ms");
 require("dotenv").config();
-const { handleAuthSuccess, handleAuthError , handleSuccess} = require("../../utils/responseHandler");
-
+const {
+  handleAuthSuccess,
+  handleAuthError,
+  handleSuccess,
+} = require("../../utils/responseHandler");
 
 exports.loginUser = async (username, password, ip, userAgent) => {
   const user = await User.findOne({ username });
@@ -17,9 +23,15 @@ exports.loginUser = async (username, password, ip, userAgent) => {
 
   const checkResult = await exports.checkExistingRefreshToken(user._id);
   if (!checkResult.success) {
-    return handleAuthSuccess(checkResult.token, checkResult.refreshToken, user, "เข้าสู่ระบบสำเร็จ", 200);
+    return handleAuthSuccess(
+      checkResult.token,
+      checkResult.refreshToken,
+      user,
+      "เข้าสู่ระบบสำเร็จ",
+      200
+    );
   }
- 
+
   const token = jwt.sign(
     {
       _id: user._id,
@@ -112,16 +124,18 @@ exports.checkExistingRefreshToken = async (userId) => {
         await RefreshToken.deleteOne({ userId });
         return { success: true };
       }
- 
-       // ใช้ handleRefreshToken เพื่อสร้าง token ใหม่
-       const newAccessToken = await exports.handleRefreshToken(existingRefreshToken.token);
 
-       return {
-         success: false,
-         message: "Using existing valid token",
-         token: newAccessToken,
-         refreshToken: existingRefreshToken.token
-       };
+      // ใช้ handleRefreshToken เพื่อสร้าง token ใหม่
+      const newAccessToken = await exports.handleRefreshToken(
+        existingRefreshToken.token
+      );
+
+      return {
+        success: false,
+        message: "Using existing valid token",
+        token: newAccessToken,
+        refreshToken: existingRefreshToken.token,
+      };
     }
 
     return { success: true };
@@ -129,3 +143,50 @@ exports.checkExistingRefreshToken = async (userId) => {
     return { success: false, message: err.message };
   }
 };
+
+exports.findUserById = async (userId) => {
+  const [user, admin, master, superadmin] = await Promise.all([
+    findInUser(userId),
+    findInAdmin(userId),
+    findInMaster(userId),
+    findInSuperAdmin(userId),
+  ]);
+
+  return user || admin || master || superadmin || null;
+};
+
+async function findInUser(userId) {
+  try {
+    return await User.findById(userId);
+  } catch (e) {
+    console.error("Error finding user in User model:", e);
+    return null;
+  }
+}
+
+async function findInAdmin(userId) {
+  try {
+    return await Admin.findById(userId);
+  } catch (e) {
+    console.error("Error finding user in Admin model:", e);
+    return null;
+  }
+}
+
+async function findInMaster(userId) {
+  try {
+    return await Master.findById(userId);
+  } catch (e) {
+    console.error("Error finding user in Master model:", e);
+    return null;
+  }
+}
+
+async function findInSuperAdmin(userId) {
+  try {
+    return await Superadmin.findById(userId);
+  } catch (e) {
+    console.error("Error finding user in SuperAdmin model:", e);
+    return null;
+  }
+}

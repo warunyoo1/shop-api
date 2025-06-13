@@ -8,6 +8,7 @@ const adminRoutes = require("./admin.routes");
 const lotteryRoutes = require("./lottery.routes");
 const authadminRoutes = require("./authadmin.routes");
 const masterRoutes = require("./master.routes");
+const { authenticate } = require("../middleware/authadmin.middleware");
 router.get("/check", (req, res) => {
   console.log("Response  check");
   res.status(200).json({
@@ -22,6 +23,7 @@ router.get("/check", (req, res) => {
 router.post("/login", authRoutes.login);
 router.post("/refreshToken", authRoutes.refreshToken);
 router.post("/logout", authRoutes.logout);
+router.get("/profile/me", authenticate, authRoutes.getProfile);
 router.use("/users", userRoutes);
 
 // ส่วน admin

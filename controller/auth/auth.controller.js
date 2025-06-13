@@ -3,11 +3,17 @@ const {
   handleRefreshToken,
   handleLogout,
   checkExistingRefreshToken,
+  findUserById,
 } = require("../../service/auth/auth.service");
 const validate = require("../../validators/Validator");
 const { logAction } = require("../../utils/logger");
 const { normalizeIP } = require("../../utils/utils");
-const { handleAuthSuccess, handleAuthError } = require("../../utils/responseHandler");
+const {
+  handleAuthSuccess,
+  handleAuthError,
+  handleSuccess,
+  handleError,
+} = require("../../utils/responseHandler");
 
 exports.login = async (req, res) => {
   const ipRaw =
@@ -30,10 +36,14 @@ exports.login = async (req, res) => {
         method: "POST",
         data: { error: error.details[0].message, input: req.body, referrer },
       });
-      const response = await handleAuthError(error, error.details[0].message, 400);
+      const response = await handleAuthError(
+        error,
+        error.details[0].message,
+        400
+      );
       return res.status(response.status).json(response);
     }
- 
+
     const result = await loginUser(username, password, ip, userAgent);
     if (!result.success) {
       await logAction("login_failed", {
@@ -56,10 +66,10 @@ exports.login = async (req, res) => {
       userId: result.user._id,
       endpoint: fullUrl,
       data: {
-        user: { 
-          id: result.user._id, 
-          username: result.user.username, 
-          email: result.user.email 
+        user: {
+          id: result.user._id,
+          username: result.user.username,
+          email: result.user.email,
         },
         referrer,
         ip,
@@ -71,7 +81,6 @@ exports.login = async (req, res) => {
     console.log(result);
 
     return res.status(result.status).json(result);
-
   } catch (error) {
     await logAction("login_error", {
       tag: "login",
@@ -88,7 +97,11 @@ exports.login = async (req, res) => {
 exports.refreshToken = async (req, res) => {
   const authorizationHeader = req.headers["authorization"];
   if (!authorizationHeader) {
-    const response = await handleAuthError(null, "กรุณาระบุ authorization header", 400);
+    const response = await handleAuthError(
+      null,
+      "กรุณาระบุ authorization header",
+      400
+    );
     return res.status(response.status).json(response);
   }
 
@@ -100,10 +113,19 @@ exports.refreshToken = async (req, res) => {
 
   try {
     const result = await handleRefreshToken(token);
-    const response = await handleAuthSuccess(result, null, null, "รีเฟรชโทเค็นสำเร็จ");
+    const response = await handleAuthSuccess(
+      result,
+      null,
+      null,
+      "รีเฟรชโทเค็นสำเร็จ"
+    );
     return res.status(response.status).json(response);
   } catch (error) {
-    const response = await handleAuthError(error, "โทเค็นไม่ถูกต้องหรือหมดอายุ", 403);
+    const response = await handleAuthError(
+      error,
+      "โทเค็นไม่ถูกต้องหรือหมดอายุ",
+      403
+    );
     return res.status(response.status).json(response);
   }
 };
@@ -111,7 +133,11 @@ exports.refreshToken = async (req, res) => {
 exports.logout = async (req, res) => {
   const authorizationHeader = req.headers["authorization"];
   if (!authorizationHeader) {
-    const response = await handleAuthError(null, "กรุณาระบุ authorization header", 400);
+    const response = await handleAuthError(
+      null,
+      "กรุณาระบุ authorization header",
+      400
+    );
     return res.status(response.status).json(response);
   }
 
@@ -127,5 +153,31 @@ exports.logout = async (req, res) => {
   } catch (error) {
     const response = await handleAuthError(error);
     return res.status(response.status).json(response);
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      const response = await handleError(null, "Unauthorized", 401);
+      return res.status(401).json(response);
+    }
+
+    const user = await findUserById(userId);
+    if (!user) {
+      const response = await handleError(null, "ไม่พบผู้ใช้งาน", 401);
+      return res.status(404).json(response);
+    }
+
+    const response = await handleSuccess(user, "ดึงข้อมูลผู้ใช้งานสำเร็จ");
+    return res.status(200).json(response);
+  } catch (error) {
+    const response = await handleError(
+      error,
+      "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์",
+      500
+    );
+    return res.status(500).json(response);
   }
 };
