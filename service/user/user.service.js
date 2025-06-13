@@ -2,12 +2,15 @@ const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Master = require("../../models/master.model");
 const { generateReferralCode } = require("../../utils/utils");
-const { handleSuccess, handleError } = require("../../utils/responseHandler");
+const {
+  handleSuccess,
+  handleError,
+  formatCreateUserResponse,
+} = require("../../utils/responseHandler");
 
 exports.registerUser = async ({
   full_name,
   username,
-  password,
   phone,
   master_id = null,
   bank_name,
@@ -36,7 +39,7 @@ exports.registerUser = async ({
     const user = new User({
       full_name,
       username,
-      password,
+      password: phone,
       phone,
       master_id,
       bank_name,
@@ -44,8 +47,9 @@ exports.registerUser = async ({
       referral_code: referral_code,
     });
     const savedUser = await user.save();
+    const responseData = await formatCreateUserResponse(savedUser);
 
-    return handleSuccess(savedUser, "สมัครสมาชิกสำเร็จ", 201);
+    return handleSuccess(responseData, "สมัครสมาชิกสำเร็จ", 201);
   } catch (error) {
     return handleError(error);
   }

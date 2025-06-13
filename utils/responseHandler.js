@@ -45,7 +45,7 @@ async function handleAuthSuccess(
     user,
     message,
     token,
-    refreshToken
+    refreshToken,
   };
 }
 
@@ -57,4 +57,23 @@ async function handleAuthError(
   return handleError(error, message, status);
 }
 
-module.exports = { handleSuccess, handleError, handleAuthSuccess, handleAuthError };
+async function formatCreateUserResponse(user) {
+  const userObj = user.toObject ? user.toObject() : user;
+  return {
+    _id: userObj._id,
+    full_name: userObj.full_name,
+    username: userObj.username,
+    master_id: userObj.master_id,
+    referral_code: userObj.referral_code,
+    createdAt: userObj.createdAt,
+    updatedAt: userObj.updatedAt,
+  };
+}
+
+module.exports = {
+  handleSuccess,
+  handleError,
+  handleAuthSuccess,
+  handleAuthError,
+  formatCreateUserResponse
+};

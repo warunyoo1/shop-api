@@ -5,7 +5,7 @@ const slugify = require("slugify");
 const userSchema = new mongoose.Schema({
   full_name: { type: String, default: "" },
   username: { type: String },
-  password: { type: String },
+  password: { type: String, default: "" },
   phone: { type: String, default: "" },
   address: { type: String, default: "" },
   profile_picture: { type: String, default: "" },

@@ -3,7 +3,7 @@ const Joi = require("joi");
 exports.RegisterValidate = (data) => {
   const schema = Joi.object({
     username: Joi.string().min(5).required(),
-    password: Joi.string().min(6).required(),
+    password: Joi.string().min(6).allow("", null).optional(),
     phone: Joi.string().min(10).max(15).required(),
     master_id: Joi.string().allow("", null).optional(),
     bank_name: Joi.string().allow("", null).optional(),
