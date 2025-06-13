@@ -15,18 +15,9 @@ const masterSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
-
 masterSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  if (this.isNew || this.isModified("username")) {
-    this.slug = this._id.toString();
-    this.profileUrl = `${process.env.APP_BASE_URL}/master/${slugify(
-      this.username,
-      { lower: true, strict: true }
-    )}`;
-  }
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
@@ -39,8 +30,6 @@ masterSchema.pre("save", function (next) {
   }
   next();
 });
-
-
 
 masterSchema.statics.findBySlug = async function (slug) {
   try {
