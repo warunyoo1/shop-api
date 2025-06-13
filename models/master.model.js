@@ -30,18 +30,17 @@ masterSchema.pre("save", async function (next) {
   next();
 });
 
-masterSchema.pre("findOneAndUpdate", async function (next) {
-  const update = this.getUpdate();
-
-  if (update && update.$set && update.$set.username) {
-    update.$set.profileUrl = `${process.env.APP_BASE_URL}/master/${slugify(
-      update.$set.username,
+masterSchema.pre("save", function (next) {
+  if (this.isModified("username") && this.username) {
+    this.profileUrl = `${process.env.APP_BASE_URL}/master/${slugify(
+      this.username,
       { lower: true, strict: true }
     )}`;
   }
-
   next();
 });
+
+
 
 masterSchema.statics.findBySlug = async function (slug) {
   try {
