@@ -23,7 +23,7 @@ exports.createMaster = async (
     const newMaster = new master({
       username,
       email,
-      password, 
+      password,
       phone,
       commission_percentage,
     });
@@ -246,7 +246,13 @@ exports.getCustomerByMaster = async (masterId) => {
     if (!masterId) {
       return handleError(null, "กรุณาระบุ ID ของ Master", 400);
     }
+
     const result = await user.find({ master_id: masterId });
+
+    if (!result || result.length === 0) {
+      return handleError(null, "ไม่พบข้อมูลผู้ใช้", 404);
+    }
+
     return handleSuccess(result, "ดึงข้อมูล Customer สำเร็จ");
   } catch (error) {
     return handleError(error);
