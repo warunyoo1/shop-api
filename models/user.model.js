@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema({
   active: { type: Boolean, default: true },
   bank_name: { type: String, default: "" },
   bank_number: { type: String, default: "" },
-  slug: { type: String, default: "" },
   profileUrl: { type: String, default: "" },
   referral_code: { type: String, default: "" },
   master_id: {
@@ -32,13 +31,12 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-
 userSchema.pre("save", function (next) {
   if (this.isModified("referral_code") && this.referral_code) {
-    const slug = slugify(this.referral_code, { lower: true, strict: true });
-    this.slug = slug;
+    const slug = slugify(this.referral_code);
     this.profileUrl = `${process.env.APP_BASE_URL}/user/${slug}`;
   }
   next();
 });
+
 module.exports = mongoose.model("User", userSchema);
