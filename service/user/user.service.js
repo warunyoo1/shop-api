@@ -49,7 +49,7 @@ exports.registerUser = async ({
 
     const user = new User({
       full_name,
-      username,
+      username: phone,
       password: phone,
       phone,
       master_id,

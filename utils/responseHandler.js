@@ -62,9 +62,6 @@ async function formatCreateUserResponse(user) {
 
   const response = {
     _id: userObj._id,
-    full_name: userObj.full_name,
-    username: userObj.username,
-    referral_code: userObj.referral_code,
     createdAt: userObj.createdAt,
     updatedAt: userObj.updatedAt,
   };
