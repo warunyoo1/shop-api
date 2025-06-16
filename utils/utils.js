@@ -1,5 +1,6 @@
 const { v4: uuid4 } = require("uuid");
 const User = require("../models/user.model");
+const mongoose = require("mongoose");
 
 exports.normalizeIP = (ip) => {
   if (!ip) return null;
@@ -85,4 +86,8 @@ exports.formatCreateUserResponse = (userDoc) => {
   }
 
   return data;
+};
+
+exports.isValidObjectId = function (id) {
+  return mongoose.Types.ObjectId.isValid(id);
 };

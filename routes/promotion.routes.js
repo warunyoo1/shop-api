@@ -3,5 +3,7 @@ const router = express.Router();
 const promotionController = require("../controller/promotion/promotion.controller");
 
 router.post("/create", promotionController.createPromotion);
+router.get("/get", promotionController.getAllPromotions);
+router.get("/:id", promotionController.getPromotionById);
 
 module.exports = router;
