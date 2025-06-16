@@ -8,7 +8,7 @@ const masterSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String },
-  profileUrl: { type: String, default: "" },
+  share_url_master: { type: String, default: "" },
   slug: { type: String, unique: true }, // จะใช้ _id
   commission_percentage: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
@@ -23,7 +23,7 @@ masterSchema.pre("save", async function (next) {
 
 masterSchema.pre("save", function (next) {
   if (this.isModified("username") && this.username) {
-    this.profileUrl = `${process.env.APP_BASE_URL}/master/${slugify(
+    this.share_url_master = `${process.env.APP_BASE_URL}/master/${slugify(
       this.username,
       { lower: true, strict: true }
     )}`;

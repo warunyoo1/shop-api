@@ -36,7 +36,7 @@ exports.createMaster = async (
         username: savedMaster.username,
         email: savedMaster.email,
         slug: savedMaster.slug,
-        profileUrl: savedMaster.profileUrl,
+        share_url_master: savedMaster.share_url_master,
       },
       "สร้าง Master สำเร็จ",
       201
