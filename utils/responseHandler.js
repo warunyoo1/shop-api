@@ -59,15 +59,21 @@ async function handleAuthError(
 
 async function formatCreateUserResponse(user) {
   const userObj = user.toObject ? user.toObject() : user;
-  return {
+
+  const response = {
     _id: userObj._id,
     full_name: userObj.full_name,
     username: userObj.username,
-    master_id: userObj.master_id,
     referral_code: userObj.referral_code,
     createdAt: userObj.createdAt,
     updatedAt: userObj.updatedAt,
   };
+
+  if (userObj.master_id && userObj.master_id !== "") {
+    response.master_id = userObj.master_id;
+  }
+
+  return response;
 }
 
 module.exports = {
@@ -75,5 +81,5 @@ module.exports = {
   handleError,
   handleAuthSuccess,
   handleAuthError,
-  formatCreateUserResponse
+  formatCreateUserResponse,
 };

@@ -34,3 +34,55 @@ exports.generateReferralCode = async function () {
 
   return code;
 };
+
+exports.filterUserResponse = function (userDoc, originalPayload) {
+  const filtered = {};
+  for (const key in originalPayload) {
+    const value = userDoc[key];
+
+    const isEmptyValue =
+      value === undefined ||
+      value === null ||
+      (typeof value === "string" && value.trim() === "");
+
+    if (!isEmptyValue) {
+      filtered[key] = value;
+    }
+  }
+
+  if (userDoc._id) filtered._id = userDoc._id;
+  if (userDoc.referral_code) filtered.referral_code = userDoc.referral_code;
+
+  return filtered;
+};
+
+exports.formatCreateUserResponse = (userDoc) => {
+  const user = userDoc.toObject();
+
+  const data = {
+    _id: user._id,
+    full_name: user.full_name,
+    username: user.username,
+    referral_code: user.referral_code,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  if (user.master_id && user.master_id !== "") {
+    data.master_id = user.master_id;
+  }
+
+  if (user.bank_name) {
+    data.bank_name = user.bank_name;
+  }
+
+  if (user.bank_number) {
+    data.bank_number = user.bank_number;
+  }
+
+  if (user.referral_user) {
+    data.referral_user = user.referral_user;
+  }
+
+  return data;
+};
