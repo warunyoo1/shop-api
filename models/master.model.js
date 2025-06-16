@@ -23,10 +23,9 @@ masterSchema.pre("save", async function (next) {
 
 masterSchema.pre("save", function (next) {
   if (this.isModified("username") && this.username) {
-    this.share_url_master = `${process.env.APP_BASE_URL}/master/${slugify(
-      this.username,
-      { lower: true, strict: true }
-    )}`;
+    const slug = slugify(this.username, { lower: true, strict: true });
+    this.slug = slug;
+    this.share_url_master = `${process.env.APP_BASE_URL}/master/${slug}`;
   }
   next();
 });

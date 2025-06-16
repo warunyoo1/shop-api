@@ -29,6 +29,7 @@ exports.createMaster = async (
     });
 
     const savedMaster = await newMaster.save();
+    console.log("Master created:", savedMaster);
 
     return handleSuccess(
       {
