@@ -8,6 +8,8 @@ const adminRoutes = require("./admin.routes");
 const lotteryRoutes = require("./lottery.routes");
 const authadminRoutes = require("./authadmin.routes");
 const masterRoutes = require("./master.routes");
+const creditRoutes = require("./credit.routes");
+const promotionRoutes = require("./promotion.routes");
 const { authenticate } = require("../middleware/authadmin.middleware");
 router.get("/check", (req, res) => {
   console.log("Response  check");
@@ -37,5 +39,11 @@ router.use("/lottery", lotteryRoutes);
 
 // ส่วนของ user lottery
 router.use("/userlottery", userRoutes);
+
+// ส่วนของการสร้าง credit
+router.use("/credit", creditRoutes);
+
+// ส่วนของการสร้าง promotion
+router.use("/promotion", promotionRoutes);
 
 module.exports = router;
