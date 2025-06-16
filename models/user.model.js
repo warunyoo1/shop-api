@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema({
   username: { type: String },
   password: { type: String, default: "" },
   phone: { type: String, default: "" },
-  address: { type: String, default: "" },
   profile_picture: { type: String, default: "" },
   role: { type: String, default: "user" },
   credit: { type: Number, default: 0 },
@@ -16,7 +15,8 @@ const userSchema = new mongoose.Schema({
   bank_number: { type: String, default: "" },
   referral_link: { type: String, default: "" },
   referral_code: { type: String, default: "" },
-  referral_by: {
+  referral_by: { type: String, default: "" },
+  referral_user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     default: null,

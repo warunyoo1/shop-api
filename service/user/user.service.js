@@ -35,7 +35,8 @@ exports.registerUser = async ({
       }
     }
 
-    let referralUserId = null;
+    let referralByCode = null;
+    let referral_user_id = null;
     if (user_id) {
       const parts = user_id.trim().split("/");
       const referralCode = parts[parts.length - 1];
@@ -44,7 +45,8 @@ exports.registerUser = async ({
         return handleError(null, "ไม่พบรหัสแนะนำนี้", 404);
       }
 
-      referralUserId = refUser._id;
+      referralByCode = refUser.referral_code;
+      referral_user_id = refUser._id;
     }
 
     const referral_code = await generateReferralCode();
@@ -58,7 +60,8 @@ exports.registerUser = async ({
       bank_name,
       bank_number,
       referral_code: referral_code,
-      referral_by: referralUserId,
+      referral_by: referralByCode,
+      referral_user_id: referral_user_id,
     });
     const savedUser = await user.save();
     const responseData = await formatCreateUserResponse(savedUser);
