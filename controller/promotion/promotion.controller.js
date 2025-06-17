@@ -16,6 +16,20 @@ exports.createPromotion = async (req, res) => {
   }
 };
 
+exports.createPromotionByUserID = async (req, res) => {
+  try {
+    const promotion = await promotionService.createPromotionByUserID(req.body);
+    const response = await handleSuccess(
+      promotion,
+      "Promotion created successfully"
+    );
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(error, "Failed to create promotion");
+    return res.status(response.status).json(response);
+  }
+};
+
 exports.getPromotionById = async (req, res) => {
   try {
     const { id } = req.params;

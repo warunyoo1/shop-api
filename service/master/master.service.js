@@ -29,8 +29,9 @@ exports.createMaster = async (
     });
 
     const savedMaster = await newMaster.save();
-    console.log("Master created:", savedMaster);
-
+    if (!savedMaster) {
+      return handleError(null, "ไม่สามารถสร้าง Master ได้", 500);
+    }
     return handleSuccess(
       {
         id: savedMaster._id,
@@ -38,6 +39,7 @@ exports.createMaster = async (
         email: savedMaster.email,
         slug: savedMaster.slug,
         share_url_master: savedMaster.share_url_master,
+        master_id: savedMaster.username,
       },
       "สร้าง Master สำเร็จ",
       201

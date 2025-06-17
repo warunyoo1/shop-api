@@ -9,6 +9,7 @@ const masterSchema = new mongoose.Schema({
   password: { type: String, required: true },
   phone: { type: String },
   share_url_master: { type: String, default: "" },
+  master_id: { type: String, default: "" },
   slug: { type: String }, // จะใช้ _id
   commission_percentage: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
