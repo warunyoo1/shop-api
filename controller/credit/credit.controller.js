@@ -3,13 +3,12 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.createCredit = async function (req, res) {
   try {
-    const { user_id, amount, type, description, promotion_id } = req.body;
+    const { user_id, amount, type, description } = req.body;
     const credit = await creditService.createCredit({
       user_id,
       amount,
       type,
       description,
-      promotion_id,
     });
     if (!credit) {
       const response = await handleError(null, "Failed to create credit", 400);
