@@ -21,7 +21,6 @@ exports.createCredit = async function ({
       created_at,
     });
 
-    // Validate inputs
     validateInput({ user_id, amount, type, promotion_id });
 
     const userIdObj = new mongoose.Types.ObjectId(user_id);
@@ -29,16 +28,13 @@ exports.createCredit = async function ({
       ? new mongoose.Types.ObjectId(promotion_id)
       : null;
 
-    // Fetch user
     const user = await User.findById(userIdObj);
-    console.log("👤 User Found:", user?.username || user?._id);
     if (!user) {
       const error = new Error("User not found");
       error.statusCode = 404;
       throw error;
     }
 
-    // Create credit record
     const credit = await createCreditRecord({
       userIdObj,
       amount,
@@ -48,30 +44,22 @@ exports.createCredit = async function ({
       created_at,
     });
 
-    // Update user's credit balance
-    await updateUserCredit(userIdObj, amount);
+    if (type === "topup") {
+      await updateUserCredit(userIdObj, amount);
 
-    // Check referral bonus conditions only for topup with promotion
-    if (!promotionIdObj || type !== "topup") {
-      return credit;
+      if (promotionIdObj) {
+        const promotion = await Promotion.findById(promotionIdObj);
+        if (promotion) {
+          await handleReferralBonus({
+            user,
+            promotion,
+            promotionIdObj,
+            userIdObj,
+            created_at,
+          });
+        }
+      }
     }
-
-    console.log("🔍 Checking Referral Bonus conditions...");
-
-    const promotion = await Promotion.findById(promotionIdObj);
-    if (!promotion) {
-      console.log("❌ No promotion found");
-      return credit;
-    }
-
-    // Handle referral bonus logic
-    await handleReferralBonus({
-      user,
-      promotion,
-      promotionIdObj,
-      userIdObj,
-      created_at,
-    });
 
     return credit;
   } catch (error) {
@@ -322,7 +310,7 @@ async function handleReferralBonus({
               $dateToString: {
                 format: "%Y-%m-%d",
                 date: "$created_at",
-                timezone: "Asia/Bangkok", 
+                timezone: "Asia/Bangkok",
               },
             },
           },
