@@ -7,7 +7,7 @@ const UserPromotionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    promotionId: {
+    promotion_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Promotion",
       required: true,
