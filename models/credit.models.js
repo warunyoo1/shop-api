@@ -19,12 +19,27 @@ const CreditSchema = new Schema(
       type: Number,
       required: true,
     },
-    type: {
+    netAmount: {
+      type: Number,
+      required: true,
+    },
+    fee: {
+      type: Number,
+      required: true,
+    },
+    channel: {
       type: String,
     },
     description: {
       type: String,
     },
+    status: {
+      type: String,
+      enum: ["pending", "success", "failed"],
+      default: "pending",
+    },
+    
+
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

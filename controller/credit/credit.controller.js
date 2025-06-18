@@ -3,11 +3,11 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 exports.createCredit = async function (req, res) {
   try {
-    const { user_id, amount, type, description } = req.body;
+    const { user_id, amount, channel, description } = req.body;
     const credit = await creditService.createCredit({
       user_id,
       amount,
-      type,
+      channel,
       description,
     });
     if (!credit) {
@@ -59,6 +59,70 @@ exports.getAllCredits = async function (req, res) {
   }
 };
 
+exports.updateCredit = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const { amount, channel, description } = req.body;
+    const credit = await creditService.updateCredit({
+      id,
+      amount,
+      channel,
+      description,
+    });
+    if (!credit.success) {
+      return res.status(credit.status).json(credit);
+    }
+    return res.status(credit.status).json(credit);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
+};
+
+exports.approveCredit = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const credit = await creditService.approveCredit({ id });
+    if (!credit.success) {
+      return res.status(credit.status).json(credit);
+    }
+    return res.status(credit.status).json(credit);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
+};
+
+exports.cancelCredit = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const credit = await creditService.cancelCredit({ id });
+    if (!credit.success) {
+      return res.status(credit.status).json(credit);
+    }
+    return res.status(credit.status).json(credit);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
+};
+
+exports.deleteCredit = async function (req, res) {
+  try {
+    const { id } = req.params;
+    const credit = await creditService.deleteCredit({ id });
+    if (!credit.success) {
+      return res.status(credit.status).json(credit);
+    }
+    return res.status(credit.status).json(credit);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
+};
+
+
+// ยังไม่ใช้
 exports.getCreditStats = async function (req, res) {
   try {
     const { id } = req.params;
