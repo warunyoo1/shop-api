@@ -16,7 +16,7 @@ const PromotionSchema = new mongoose.Schema(
     },
     specificUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     active: { type: Boolean, default: true },
-    startDate: { type: Date, required: true },
+    startDate: { type: Date, required: true, default: null },
     endDate: { type: Date, default: null },
     conditions: {
       depositAmount: { type: Number, default: null },
