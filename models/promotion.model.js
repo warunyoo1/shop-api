@@ -42,5 +42,14 @@ const PromotionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+PromotionSchema.set("toJSON", {
+  transform: (doc, ret) => {
+    delete ret.__v;
+    if (ret.startDate) {
+      ret.startDate = new Date(ret.startDate).toISOString();
+    }
+    return removeNullValues(ret);
+  },
+});
 
 module.exports = mongoose.model("Promotion", PromotionSchema);

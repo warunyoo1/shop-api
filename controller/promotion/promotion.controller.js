@@ -1,11 +1,15 @@
 const promotionService = require("../../service/promotion/promotion.service");
-const { handleSuccess, handleError } = require("../../utils/responseHandler");
+const {
+  handleSuccess,
+  handleError,
+  handleSuccessResetResponse,
+} = require("../../utils/responseHandler");
 const { isValidObjectId } = require("../../utils/utils");
 
 exports.createPromotion = async (req, res) => {
   try {
     const promotion = await promotionService.createPromotion(req.body);
-    const response = await handleSuccess(
+    const response = await handleSuccessResetResponse(
       promotion,
       "Promotion created successfully"
     );
