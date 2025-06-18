@@ -5,42 +5,13 @@ const UserPromotion = require("../../models/userPromotions.models");
 
 exports.createPromotion = async function (promotionData) {
   try {
-    // 1. สร้างโปรโมชั่นใหม่
-    const promotion = new Promotion(promotionData);
-    const savedPromotion = await promotion.save();
-    console.log("✅ Promotion created:", savedPromotion);
+    const savedPromotion = await createNewPromotion(promotionData);
 
-    let userFilter = {};
-    switch (promotionData.target) {
-      case "master":
-        userFilter = { master_id: { $ne: null } };
-        break;
-      case "referrer":
-        userFilter = { referral_by: { $ne: null } };
-        break;
-      case "normal":
-        userFilter = {
-          referral_by: null,
-          master_id: null,
-        };
-        break;
-      default:
-        throw new Error(`Invalid target type: ${promotionData.target}`);
-    }
-
-    const targetUsers = await User.find(userFilter);
-    const userPromotions = targetUsers.map((user) => ({
-      user_id: user._id,
-      promotion_id: savedPromotion._id,
-      status: "pending",
-    }));
-
-    if (userPromotions.length > 0) {
-      await UserPromotion.insertMany(userPromotions);
-      console.log(`✅ Created ${userPromotions.length} UserPromotion records.`);
-    } else {
-      console.log("ℹ️ No users matched target criteria.");
-    }
+    const userFilter = getUserFilterByTarget(
+      promotionData.target,
+      promotionData.specificUsers || []
+    );
+    await createUserPromotionsForUsers(savedPromotion._id, userFilter);
 
     return savedPromotion;
   } catch (error) {
@@ -108,3 +79,108 @@ exports.getAllPromotions = async function ({ page = 1, limit = 10 }) {
     },
   };
 };
+
+async function createNewPromotion(promotionData) {
+  const promotion = new Promotion(promotionData);
+  return await promotion.save();
+}
+
+async function createUserPromotionsForUsers(promotionId, userFilter) {
+  try {
+    const targetUsers = await User.find(userFilter);
+    if (targetUsers.length === 0) {
+      console.log("ℹ️ No users matched target criteria.");
+      return;
+    }
+
+    for (const user of targetUsers) {
+      if (!user._id) continue;
+
+      try {
+        const existingUserPromotion = await UserPromotion.findOne({
+          user_id: user._id,
+        });
+
+        const newPromotion = {
+          promotion_id: promotionId,
+          status: "pending",
+          progress: {
+            depositCount: 0,
+            depositTotal: 0,
+            betTotal: 0,
+            lossTotal: 0,
+            lastDepositDate: null,
+            consecutiveDays: 0,
+          },
+          reward: {
+            amount: 0,
+            withdrawable: false,
+            givenAt: null,
+          },
+          note: "",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        if (existingUserPromotion) {
+          const alreadyHasPromotion = existingUserPromotion.promotions.some(
+            (promo) => promo.promotion_id.toString() === promotionId.toString()
+          );
+          if (!alreadyHasPromotion) {
+            existingUserPromotion.promotions.push(newPromotion);
+            existingUserPromotion.updatedAt = new Date();
+            await existingUserPromotion.save();
+            console.log(
+              `✅ Added promotion to existing UserPromotion for user ${user._id}`
+            );
+          } else {
+            console.log(`ℹ️ User ${user._id} already has this promotion`);
+          }
+        } else {
+          const newUserPromotion = new UserPromotion({
+            user_id: user._id,
+            balance: 0,
+            promotions: [newPromotion],
+          });
+          await newUserPromotion.save();
+          console.log(`✅ Created new UserPromotion for user ${user._id}`);
+        }
+      } catch (innerError) {
+        console.error(`❌ Error processing user ${user._id}:`, innerError);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error creating user promotions:", error);
+    throw error;
+  }
+}
+
+function getUserFilterByTarget(target, specificUsers = []) {
+  if (specificUsers && specificUsers.length > 0 && target !== "specific") {
+    throw new Error("specificUsers can only be used when target is 'specific'");
+  }
+  switch (target) {
+    case "master":
+      return { master_id: { $ne: null } };
+    case "referrer":
+      return { referral_by: { $ne: null } };
+    case "normal":
+      return { referral_by: null, master_id: null };
+    case "specific":
+      if (
+        !specificUsers ||
+        !Array.isArray(specificUsers) ||
+        specificUsers.length === 0
+      ) {
+        return {};
+      }
+      return {
+        _id: { $in: specificUsers.map((id) => mongoose.Types.ObjectId(id)) },
+      };
+
+    case "all":
+      return {};
+    default:
+      throw new Error(`Invalid target type: ${target}`);
+  }
+}

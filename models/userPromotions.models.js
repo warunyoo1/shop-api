@@ -7,37 +7,61 @@ const UserPromotionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    promotion_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Promotion",
-      required: true,
+
+    balance: {
+      type: Number,
+      default: 0,
     },
 
-    status: {
-      type: String,
-      enum: ["pending", "completed", "rejected", "rewarded"],
-      default: "pending",
-      required: true,
-    },
+    promotions: [
+      {
+        promotion_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Promotion",
+          required: true,
+        },
 
-    progress: {
-      depositCount: { type: Number, default: 0 },
-      depositTotal: { type: Number, default: 0 },
-      betTotal: { type: Number, default: 0 },
-      lossTotal: { type: Number, default: 0 },
-      lastDepositDate: { type: Date, default: null },
-      consecutiveDays: { type: Number, default: 0 },
-    },
+        status: {
+          type: String,
+          enum: ["pending", "completed", "rewarded", "rejected"],
+          default: "pending",
+        },
 
-    reward: {
-      amount: { type: Number, default: 0 },
-      withdrawable: { type: Boolean, default: false },
-      givenAt: { type: Date },
-    },
+        progress: {
+          depositCount: { type: Number, default: 0 },
+          depositTotal: { type: Number, default: 0 },
+          betTotal: { type: Number, default: 0 },
+          lossTotal: { type: Number, default: 0 },
+          lastDepositDate: { type: Date, default: null },
+          consecutiveDays: { type: Number, default: 0 },
+        },
 
-    note: { type: String, default: "" },
+        reward: {
+          amount: { type: Number, default: 0 },
+          withdrawable: { type: Boolean, default: false },
+          givenAt: { type: Date, default: null },
+        },
+
+        note: {
+          type: String,
+          default: "",
+        },
+
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("UserPromotion", UserPromotionSchema);
