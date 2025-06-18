@@ -19,11 +19,11 @@ const PromotionSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },
     conditions: {
-      depositAmount: { type: Number, default: 0 },
-      depositDays: { type: Number, default: 0 },
-      turnOverTimes: { type: Number, default: 0 },
-      maxBonus: { type: Number, default: 0 },
-      percentage: { type: Number, default: 0 },
+      depositAmount: { type: Number, default: null },
+      depositDays: { type: Number, default: null },
+      turnOverTimes: { type: Number, default: null },
+      maxBonus: { type: Number, default: null },
+      percentage: { type: Number, default: null },
       every: {
         type: String,
         enum: ["daily", "weekly", "monthly", null],
@@ -32,7 +32,7 @@ const PromotionSchema = new mongoose.Schema(
       dayOfWeek: { type: Number, min: 0, max: 6, default: null },
       fromFriendBet: { type: Boolean, default: false },
       requireLinkSignup: { type: Boolean, default: false },
-      maxDepositCountPerDay: { type: Number, default: 0 },
+      maxDepositCountPerDay: { type: Number, default: null },
     },
     rewards: {
       credit: { type: Number, default: null },
