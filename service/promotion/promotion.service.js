@@ -5,12 +5,18 @@ const UserPromotion = require("../../models/userPromotions.models");
 
 exports.createPromotion = async function (promotionData) {
   try {
+    // 🔍 ตรวจสอบเฉพาะตอน target = 'specific'
+    if (promotionData.target === "specific") {
+      await validateSpecificUsers(promotionData.specificUsers || []);
+    }
+
     const savedPromotion = await createNewPromotion(promotionData);
 
     const userFilter = getUserFilterByTarget(
       promotionData.target,
       promotionData.specificUsers || []
     );
+
     await createUserPromotionsForUsers(savedPromotion._id, userFilter);
 
     return savedPromotion;
@@ -167,20 +173,45 @@ function getUserFilterByTarget(target, specificUsers = []) {
     case "normal":
       return { referral_by: null, master_id: null };
     case "specific":
-      if (
-        !specificUsers ||
-        !Array.isArray(specificUsers) ||
-        specificUsers.length === 0
-      ) {
-        return {};
+      if (!Array.isArray(specificUsers) || specificUsers.length === 0) {
+        throw new Error(
+          "specificUsers ต้องเป็น array ที่ไม่ว่างเมื่อ target เป็น 'specific'"
+        );
       }
       return {
-        _id: { $in: specificUsers.map((id) => mongoose.Types.ObjectId(id)) },
+        _id: {
+          $in: specificUsers.map((id) => new mongoose.Types.ObjectId(id)),
+        }, // ✅ ถูก
       };
 
     case "all":
       return {};
     default:
       throw new Error(`Invalid target type: ${target}`);
+  }
+}
+
+async function validateSpecificUsers(specificUsers) {
+  try {
+    const objectIds = specificUsers.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
+    const foundUsers = await User.find({ _id: { $in: objectIds } }).select(
+      "_id"
+    );
+    const foundIds = foundUsers.map((user) => user._id.toString());
+
+    const notFoundIds = specificUsers.filter(
+      (id) => !foundIds.includes(id.toString())
+    );
+
+    if (notFoundIds.length > 0) {
+      throw new Error(`User(s) not found for ID(s): ${notFoundIds.join(", ")}`);
+    }
+
+    return objectIds;
+  } catch (err) {
+    console.error("❌ Error in validateSpecificUsers:", err.message);
+    throw err;
   }
 }
