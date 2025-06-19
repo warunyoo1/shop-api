@@ -202,7 +202,9 @@ exports.evaluateLotteryResults = async (req, res) => {
   try {
     const { lottery_set_id } = req.query;
 
-    const result = await huayService.evaluateUserBets(lottery_set_id);
+    const result = await huayService.evaluateUserBetsByLotterySet(
+      lottery_set_id
+    );
     const response = await handleSuccess(result, "ตรวจผลหวยสำเร็จ");
     return res.status(response.status).json(response);
   } catch (error) {

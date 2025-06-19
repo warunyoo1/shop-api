@@ -14,7 +14,19 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       String(opt._id)
     );
 
-    const validatedBets = validateAndCalculateBets(bets, validOptionIds);
+    const bettingOptionMap = {};
+    lotterySet.betting_options.forEach((opt) => {
+      bettingOptionMap[String(opt._id)] = {
+        min_bet: opt.min_bet,
+        max_bet: opt.max_bet,
+      };
+    });
+
+    const validatedBets = validateAndCalculateBets(
+      bets,
+      validOptionIds,
+      bettingOptionMap
+    );
     const total_bet_amount = validatedBets.reduce(
       (sum, b) => sum + b.bet_amount,
       0
@@ -121,7 +133,7 @@ async function createUserBetRecord(
   return newUserBet;
 }
 
-function validateAndCalculateBets(bets, validOptionIds) {
+function validateAndCalculateBets(bets, validOptionIds, bettingOptionMap) {
   try {
     for (const bet of bets) {
       const optionId = String(bet.betting_option_id);
@@ -129,6 +141,11 @@ function validateAndCalculateBets(bets, validOptionIds) {
 
       if (!validOptionIds.includes(optionId)) {
         throw new Error(`betting_option_id ${optionId} ไม่อยู่ในชุดหวยนี้`);
+      }
+
+      const optionConfig = bettingOptionMap[optionId];
+      if (!optionConfig) {
+        throw new Error(`ไม่พบ config ของ betting_option_id ${optionId}`);
       }
 
       if (!Array.isArray(bet.numbers) || bet.numbers.length === 0) {
@@ -140,6 +157,18 @@ function validateAndCalculateBets(bets, validOptionIds) {
 
         if (typeof n.amount !== "number" || n.amount <= 0) {
           throw new Error("amount ต้องเป็นตัวเลขมากกว่า 0");
+        }
+
+        if (n.amount < optionConfig.min_bet) {
+          throw new Error(
+            `เลข ${n.number} แทง ${n.amount} น้อยกว่าขั้นต่ำ ${optionConfig.min_bet} ของ option ${optionId}`
+          );
+        }
+
+        if (n.amount > optionConfig.max_bet) {
+          throw new Error(
+            `เลข ${n.number} แทง ${n.amount} มากกว่าขั้นสูงสุด ${optionConfig.max_bet} ของ option ${optionId}`
+          );
         }
 
         return sum + n.amount;
