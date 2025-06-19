@@ -205,7 +205,7 @@ exports.evaluateLotteryResults = async (req, res) => {
     const result = await huayService.evaluateUserBetsByLotterySet(
       lottery_set_id
     );
-    const response = await handleSuccess(result, "ตรวจผลหวยสำเร็จ");
+    const response = await handleSuccess("ตรวจผลหวยสำเร็จ");
     return res.status(response.status).json(response);
   } catch (error) {
     const response = await handleError(
