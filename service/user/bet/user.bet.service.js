@@ -20,6 +20,11 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       0
     );
 
+    const total_payout_amount = bets.reduce(
+      (sum, b) => sum + b.payout_amount,
+      0
+    );
+
     await validateUserCredit(user_id, total_bet_amount);
     await deductUserCredit(user_id, total_bet_amount);
 
@@ -27,7 +32,8 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       user_id,
       lottery_set_id,
       validatedBets,
-      total_bet_amount
+      total_bet_amount,
+      total_payout_amount
     );
     return bet;
   } catch (error) {
@@ -61,7 +67,8 @@ async function createUserBetRecord(
   user_id,
   lottery_set_id,
   bets,
-  total_bet_amount
+  total_bet_amount,
+  total_payout_amount
 ) {
   const newUserBet = new UserBet({
     user_id,
@@ -69,7 +76,7 @@ async function createUserBetRecord(
     bets,
     total_bet_amount,
     status: "pending",
-    payout_amount: 0,
+    payout_amount: total_payout_amount,
     created_at: new Date(),
     updated_at: new Date(),
     bet_date: new Date(),
@@ -80,29 +87,45 @@ async function createUserBetRecord(
 }
 
 function validateAndCalculateBets(bets, validOptionIds) {
-  for (const bet of bets) {
-    const optionId = String(bet.betting_option_id);
-    if (!validOptionIds.includes(optionId)) {
-      throw new Error(`betting_option_id ${optionId} ไม่อยู่ในชุดหวยนี้`);
-    }
+  try {
+    for (const bet of bets) {
+      const optionId = String(bet.betting_option_id);
+      console.log("🔍 ตรวจสอบ betting_option_id:", optionId);
 
-    if (!Array.isArray(bet.numbers) || bet.numbers.length === 0) {
-      throw new Error("numbers ใน bet ต้องไม่ว่าง");
-    }
-
-    const betAmount = bet.numbers.reduce((sum, n) => {
-      if (typeof n.amount !== "number" || n.amount <= 0) {
-        throw new Error("amount ต้องเป็นตัวเลขมากกว่า 0");
+      if (!validOptionIds.includes(optionId)) {
+        throw new Error(`betting_option_id ${optionId} ไม่อยู่ในชุดหวยนี้`);
       }
-      return sum + n.amount;
-    }, 0);
 
-    if (typeof bet.payout_rate !== "number") {
-      throw new Error("payout_rate ต้องเป็นตัวเลข");
+      if (!Array.isArray(bet.numbers) || bet.numbers.length === 0) {
+        throw new Error("numbers ใน bet ต้องไม่ว่าง");
+      }
+
+      const betAmount = bet.numbers.reduce((sum, n) => {
+        console.log("➡️ ตรวจเลข:", n.number, "| amount:", n.amount);
+
+        if (typeof n.amount !== "number" || n.amount <= 0) {
+          throw new Error("amount ต้องเป็นตัวเลขมากกว่า 0");
+        }
+
+        return sum + n.amount;
+      }, 0);
+
+      if (typeof bet.payout_rate !== "number") {
+        throw new Error("payout_rate ต้องเป็นตัวเลข");
+      }
+
+      bet.bet_amount = betAmount;
+      bet.payout_amount = betAmount * bet.payout_rate;
+
+      console.log(
+        `✅ bet_amount = ${bet.bet_amount}, payout_rate = ${bet.payout_rate}, payout_amount = ${bet.payout_amount}`
+      );
     }
 
-    bet.bet_amount = betAmount;
+    console.log("🎉 validateAndCalculateBets สำเร็จ");
+    return bets;
+  } catch (error) {
+    console.error("❌ validateAndCalculateBets error:", error.message);
+    throw error;
   }
-
-  return bets;
 }
