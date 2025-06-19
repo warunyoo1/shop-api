@@ -9,7 +9,7 @@ const userBetSchema = new mongoose.Schema({
   lottery_set_id: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: "LotterySet",
+    ref: "LotterySets",
   },
   bet_date: { type: Date, default: Date.now },
   total_bet_amount: { type: Number, default: "" },
@@ -17,7 +17,6 @@ const userBetSchema = new mongoose.Schema({
     {
       betting_option_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "BettingOption",
       },
       numbers: [
         {

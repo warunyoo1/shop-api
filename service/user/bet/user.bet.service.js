@@ -42,6 +42,48 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
   }
 };
 
+exports.getUserBetsById = async function (user_id) {
+  try {
+    if (!user_id) throw new Error("user_id ต้องไม่ว่าง");
+
+    const bets = await UserBet.find({ user_id })
+      .populate("lottery_set_id")
+      .populate("bets.betting_option_id")
+      .sort({ bet_date: -1 });
+
+    return bets;
+  } catch (error) {
+    console.error("❌ getUserBetsById error:", error.message);
+    throw error;
+  }
+};
+
+exports.getAllUserBets = async function (page = 1, limit = 10) {
+  try {
+    const skip = (page - 1) * limit;
+    const total = await UserBet.countDocuments();
+    const bets = await UserBet.find()
+      .populate("lottery_set_id")
+      .populate("bets.betting_option_id")
+      .sort({ bet_date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return {
+      bets,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error("❌ getAllUserBets error:", error.message);
+    throw error;
+  }
+};
+
 async function validateLotterySet(lottery_set_id) {
   const lotterySet = await LotterySet.findById(lottery_set_id);
   if (!lotterySet) throw new Error("ไม่พบชุดหวยชุดนี้");
