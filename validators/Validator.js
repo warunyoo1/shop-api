@@ -125,3 +125,93 @@ exports.validateCreateLotteryType = (data) => {
 
   return schema.validate(data, { abortEarly: false });
 };
+
+
+
+// Validator สำหรับการถอนเงิน (ยังไม่ได้ใช้)
+// exports.validateCreateWithdrawal = (data) => {
+//   const schema = Joi.object({
+//     user_id: Joi.string().required().messages({
+//       "any.required": `"user_id" is required`,
+//       "string.empty": `"user_id" cannot be empty`,
+//     }),
+//     amount: Joi.number().positive().required().messages({
+//       "any.required": `"amount" is required`,
+//       "number.base": `"amount" must be a number`,
+//       "number.positive": `"amount" must be positive`,
+//     }),
+//     bankName: Joi.string().required().messages({
+//       "any.required": `"bankName" is required`,
+//       "string.empty": `"bankName" cannot be empty`,
+//     }),
+//     accountNumber: Joi.string().required().messages({
+//       "any.required": `"accountNumber" is required`,
+//       "string.empty": `"accountNumber" cannot be empty`,
+//     }),
+//     accountName: Joi.string().required().messages({
+//       "any.required": `"accountName" is required`,
+//       "string.empty": `"accountName" cannot be empty`,
+//     }),
+//     description: Joi.string().optional().allow("").messages({
+//       "string.base": `"description" must be a string`,
+//     }),
+//   });
+
+//   return schema.validate(data, { abortEarly: false });
+// };
+
+// exports.validateUpdateWithdrawal = (data) => {
+//   const schema = Joi.object({
+//     bankName: Joi.string().optional().messages({
+//       "string.base": `"bankName" must be a string`,
+//     }),
+//     accountNumber: Joi.string().optional().messages({
+//       "string.base": `"accountNumber" must be a string`,
+//     }),
+//     accountName: Joi.string().optional().messages({
+//       "string.base": `"accountName" must be a string`,
+//     }),
+//     description: Joi.string().optional().allow("").messages({
+//       "string.base": `"description" must be a string`,
+//     }),
+//   });
+
+//   return schema.validate(data, { abortEarly: false });
+// };
+
+// exports.validateApproveWithdrawal = (data) => {
+//   const schema = Joi.object({
+//     approvedBy: Joi.string().required().messages({
+//       "any.required": `"approvedBy" is required`,
+//       "string.empty": `"approvedBy" cannot be empty`,
+//     }),
+//   });
+
+//   return schema.validate(data, { abortEarly: false });
+// };
+
+// exports.validateRejectWithdrawal = (data) => {
+//   const schema = Joi.object({
+//     rejectedReason: Joi.string().required().messages({
+//       "any.required": `"rejectedReason" is required`,
+//       "string.empty": `"rejectedReason" cannot be empty`,
+//     }),
+//     approvedBy: Joi.string().required().messages({
+//       "any.required": `"approvedBy" is required`,
+//       "string.empty": `"approvedBy" cannot be empty`,
+//     }),
+//   });
+
+//   return schema.validate(data, { abortEarly: false });
+// };
+
+// exports.validateCompleteWithdrawal = (data) => {
+//   const schema = Joi.object({
+//     approvedBy: Joi.string().required().messages({
+//       "any.required": `"approvedBy" is required`,
+//       "string.empty": `"approvedBy" cannot be empty`,
+//     }),
+//   });
+
+//   return schema.validate(data, { abortEarly: false });
+// };

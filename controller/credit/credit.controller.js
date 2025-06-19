@@ -59,6 +59,31 @@ exports.getAllCredits = async function (req, res) {
   }
 };
 
+exports.getCreditsByUserId = async function (req, res) {
+  try {
+    const { user_id } = req.params;
+    console.log("user_id", user_id);
+    const { page = 1, limit = 10, status } = req.query || {};
+
+    const result = await creditService.getCreditsByUserId(user_id, {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      status,
+    });
+
+    const response = await handleSuccess(
+      result.data,
+      "Get credits by user ID successful",
+      200,
+      result.pagination
+    );
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(error, "Failed to get credits by user ID");
+    return res.status(response.status).json(response);
+  }
+};
+
 exports.updateCredit = async function (req, res) {
   try {
     const { id } = req.params;

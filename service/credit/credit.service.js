@@ -174,6 +174,38 @@ exports.getAllCredits = async function ({ page = 1, limit = 10 } = {}) {
   };
 };
 
+// ดึงประวัติการเติมเงินตาม user id
+exports.getCreditsByUserId = async function (user_id, { page = 1, limit = 10, status } = {}) {
+  try {
+    const skip = (page - 1) * limit;
+    
+    // สร้าง query object
+    let query = { user_id };
+    if (status) {
+      query.status = status;
+    }
+
+    const credits = await Credit.find(query)
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Credit.countDocuments(query);
+
+    return {
+      data: credits,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 // ลบการเติมเงิน
 exports.deleteCredit = async function ({
   id,
