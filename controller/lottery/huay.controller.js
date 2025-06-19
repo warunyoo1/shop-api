@@ -1,5 +1,6 @@
 const huayService = require("../../service/lottery/huay.service");
 const axios = require("axios");
+const { handleSuccess, handleError } = require("../../utils/responseHandler");
 const mongoose = require("mongoose");
 
 exports.createHuay = async (req, res) => {
@@ -40,12 +41,12 @@ exports.createHuay = async (req, res) => {
 
 exports.createHuayAPI = async (req, res) => {
   try {
-    const { lottery_item_id } = req.body;
+    const { lottery_set_id } = req.body;
 
-    if (!lottery_item_id) {
+    if (!lottery_set_id) {
       return res.status(400).json({
         success: false,
-        message: "Missing lottery_item_id .",
+        message: "Missing lottery_set_id .",
       });
     }
 
@@ -64,7 +65,7 @@ exports.createHuayAPI = async (req, res) => {
     const prizeFirst = data.prizes.find((prize) => prize.id === "prizeFirst");
     if (prizeFirst && Array.isArray(prizeFirst.number)) {
       huayData.push({
-        lottery_item_id,
+        lottery_set_id,
         huay_name: prizeFirst.name,
         huay_number: prizeFirst.number,
         reward: prizeFirst.reward,
@@ -74,7 +75,7 @@ exports.createHuayAPI = async (req, res) => {
     data.runningNumbers.forEach((running) => {
       if (Array.isArray(running.number)) {
         huayData.push({
-          lottery_item_id,
+          lottery_set_id,
           huay_name: running.name,
           huay_number: running.number,
           reward: running.reward,
@@ -89,7 +90,7 @@ exports.createHuayAPI = async (req, res) => {
       });
     }
 
-    const result = await huayService.create(huayData, lottery_item_id);
+    const result = await huayService.create(huayData, lottery_set_id);
 
     return res.status(200).json({
       success: true,
@@ -194,5 +195,22 @@ exports.updateHuay = async (req, res) => {
       message: "Unable to update Huay data.",
       error: error.message,
     });
+  }
+};
+
+exports.evaluateLotteryResults = async (req, res) => {
+  try {
+    const { lottery_set_id } = req.query;
+
+    const result = await huayService.evaluateUserBets(lottery_set_id);
+    const response = await handleSuccess(result, "ตรวจผลหวยสำเร็จ");
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(
+      error,
+      "เกิดข้อผิดพลาดในการตรวจผลหวย",
+      400
+    );
+    return res.status(response.status).json(response);
   }
 };

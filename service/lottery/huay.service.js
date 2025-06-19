@@ -1,12 +1,12 @@
 const huay = require("../../models/huay.model");
-const LotteryCategory = require("../../models/lotteryType.model");
-const LotteryItem = require("../../models/lotterySets.model");
+const LotterySets = require("../../models/lotterySets.model");
+const UserBet = require("../../models/userBetSchema.models");
 
-exports.create = async (data, lottery_item_id) => {
+exports.create = async (data, lottery_set_id) => {
   try {
-    const category = await LotteryItem.findById(lottery_item_id);
-    if (!category) {
-      throw new Error("Invalid lottery_item_id : Category not found.");
+    const set = await LotterySets.findById(lottery_set_id);
+    if (!set) {
+      throw new Error("Invalid lottery_set_id : set not found.");
     }
 
     let result;
@@ -63,5 +63,50 @@ exports.updateHuay = async (huayId, data) => {
   } catch (error) {
     console.error("Failed to update Huay data:", error.message);
     throw new Error("Error updating Huay data: " + error.message);
+  }
+};
+
+exports.evaluateUserBets = async function (lottery_set_id) {
+  try {
+    if (!lottery_set_id) {
+      throw new Error("ต้องระบุ lottery_set_id");
+    }
+
+    const Huay = await huay.findOne({ lottery_set_id });
+    if (!Huay) throw new Error("ไม่พบผลรางวัลของงวดนี้");
+
+    const winningNumbers = Huay.huay_number;
+
+    const pendingBets = await UserBet.find({
+      lottery_set_id,
+      status: "pending",
+    });
+
+    const updatedBets = [];
+    for (const userBet of pendingBets) {
+      let hasWon = false;
+      let payoutAmount = 0;
+
+      for (const bet of userBet.bets) {
+        for (const number of bet.numbers) {
+          if (winningNumbers.includes(number.number)) {
+            hasWon = true;
+            payoutAmount += number.amount * bet.payout_rate;
+          }
+        }
+      }
+
+      userBet.status = hasWon ? "won" : "lost";
+      userBet.payout_amount = payoutAmount;
+      userBet.updated_at = new Date();
+      await userBet.save();
+
+      updatedBets.push(userBet);
+    }
+
+    return updatedBets;
+  } catch (error) {
+    console.error("❌ evaluateUserBets error:", error.message);
+    throw error;
   }
 };

@@ -48,7 +48,7 @@ PromotionSchema.set("toJSON", {
     if (ret.startDate) {
       ret.startDate = new Date(ret.startDate).toISOString();
     }
-    return removeNullValues(ret);
+    return ret; 
   },
 });
 

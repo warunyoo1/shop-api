@@ -38,9 +38,13 @@ router.get(
 
 // Route to create a Huay ยังไม่ได้เริ่มใช้งาน
 router.post("/createHuay", huayController.createHuay); //Create Huay Manual //รอเเก้ไข
-router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API //รอเเก้ไข
+router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API
 router.get("/getHuay/all/:id", huayController.getHuay); // Get Huay //รอเเก้ไข
 router.get("/getHuay/:id", huayController.getHuayById); // Get Huay by ID //รอเเก้ไข
 router.put("/updateHuay/:id", huayController.updateHuay); // Update Huay //รอเเก้ไข
+
+
+//ผลหวย
+router.post("/getLotteryResult", huayController.evaluateLotteryResults); // Get Lottery
 
 module.exports = router;

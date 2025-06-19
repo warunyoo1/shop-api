@@ -20,11 +20,6 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       0
     );
 
-    const total_payout_amount = bets.reduce(
-      (sum, b) => sum + b.payout_amount,
-      0
-    );
-
     await validateUserCredit(user_id, total_bet_amount);
     await deductUserCredit(user_id, total_bet_amount);
 
@@ -32,8 +27,7 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       user_id,
       lottery_set_id,
       validatedBets,
-      total_bet_amount,
-      total_payout_amount
+      total_bet_amount
     );
     return bet;
   } catch (error) {
@@ -109,8 +103,7 @@ async function createUserBetRecord(
   user_id,
   lottery_set_id,
   bets,
-  total_bet_amount,
-  total_payout_amount
+  total_bet_amount
 ) {
   const newUserBet = new UserBet({
     user_id,
@@ -118,7 +111,7 @@ async function createUserBetRecord(
     bets,
     total_bet_amount,
     status: "pending",
-    payout_amount: total_payout_amount,
+    payout_amount: 0,
     created_at: new Date(),
     updated_at: new Date(),
     bet_date: new Date(),

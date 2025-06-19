@@ -54,7 +54,7 @@ exports.getPromotionById = async (req, res) => {
       return res.status(404).json(response);
     }
 
-    const response = await handleSuccess(
+    const response = await handleSuccessResetResponse(
       promotion,
       "Promotion retrieved successfully",
       200
@@ -78,7 +78,7 @@ exports.getAllPromotions = async (req, res) => {
       limit: parseInt(limit, 10),
     });
 
-    const response = await handleSuccess(
+    const response = await handleSuccessResetResponse(
       result.data,
       "ดึงข้อมูลโปรโมชั่นทั้งหมดสำเร็จ",
       200,

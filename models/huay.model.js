@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 const huaySchema = new mongoose.Schema({
-  lottery_item_id: {
+  lottery_set_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "LotteryItem",
+    ref: "LotterySets",
     required: true,
   },
   huay_name: { type: String, default: "" },
