@@ -293,3 +293,37 @@ async function validateSpecificUsers(specificUsers) {
     throw err;
   }
 }
+
+exports.getAllUserPromotions = async function ({ page = 1, limit = 10 }) {
+  try {
+    const skip = (page - 1) * limit;
+    const total = await Promotion.countDocuments();
+    const UserPromotions = await UserPromotion.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    return {
+      data: UserPromotions,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    throw new Error(`Failed to get UserPromotion: ${error.message}`);
+  }
+};
+
+exports.getUserPromotionsById = async function (userId) {
+  try {
+    const userPromotions = await UserPromotion.find({ _id: userId }).sort({
+      createdAt: -1,
+    });
+    return userPromotions;
+  } catch (error) {
+    throw new Error(`Failed to get UserPromotion by userId: ${error.message}`);
+  }
+};

@@ -130,3 +130,50 @@ exports.uploadFile = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+exports.getAllUserPromotions = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query || {};
+    const result = await promotionService.getAllUserPromotions({
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+    });
+
+    const response = await handleSuccess(
+      result.data,
+      "ดึงข้อมูลยูสเซอร์โปรโมชั่นทั้งหมดสำเร็จ",
+      200,
+      result.pagination
+    );
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(error, "Failed to get all promotions");
+    return res.status(response.status).json(response);
+  }
+};
+exports.getUserPromotionsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      const response = await handleError(
+        "Invalid ObjectId",
+        "Invalid user ID format",
+        400
+      );
+      return res.status(400).json(response);
+    }
+
+    const result = await promotionService.getUserPromotionsById(id);
+
+    const response = await handleSuccess(
+      result,
+      "ดึงข้อมูลโปรโมชั่นของผู้ใช้สำเร็จ",
+      200
+    );
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(error, "Failed to get user promotions");
+    return res.status(response.status).json(response);
+  }
+};
