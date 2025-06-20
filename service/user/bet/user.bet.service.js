@@ -1,6 +1,7 @@
 const UserBet = require("../../../models/userBetSchema.models");
 const User = require("../../../models/user.model");
 const LotterySet = require("../../../models/lotterySets.model");
+const UserTransaction = require("../../../models/user.transection.model");
 const mongoose = require("mongoose");
 
 exports.createUserBet = async function (user_id, lottery_set_id, bets) {
@@ -32,8 +33,14 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       0
     );
 
+    const user = await User.findById(user_id);
+    const balance_before = user.credit;
+
     await validateUserCredit(user_id, total_bet_amount);
     await deductUserCredit(user_id, total_bet_amount);
+
+    const userAfter = await User.findById(user_id);
+    const balance_after = userAfter.credit;
 
     const bet = await createUserBetRecord(
       user_id,
@@ -41,6 +48,17 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
       validatedBets,
       total_bet_amount
     );
+
+    await UserTransaction.create({
+      user_id,
+      type: "bet",
+      amount: total_bet_amount,
+      balance_before,
+      balance_after,
+      ref_id: bet._id,
+      description: "แทงหวย",
+      created_at: new Date(),
+    });
     return bet;
   } catch (error) {
     console.error("❌ createUserBet error:", error.message);
@@ -193,3 +211,47 @@ function validateAndCalculateBets(bets, validOptionIds, bettingOptionMap) {
     throw error;
   }
 }
+
+exports.cancelUserBet = async function (user_id, bet_id) {
+  try {
+    const userBet = await UserBet.findOne({
+      _id: bet_id,
+      user_id,
+      status: "pending",
+    });
+    if (!userBet) {
+      return null;
+    }
+
+    const user = await User.findById(user_id);
+    const balance_before = user.credit;
+
+    await User.updateOne(
+      { _id: user_id },
+      { $inc: { credit: userBet.total_bet_amount } }
+    );
+
+    const userAfter = await User.findById(user_id);
+    const balance_after = userAfter.credit;
+
+    userBet.status = "cancelled";
+    userBet.updated_at = new Date();
+    await userBet.save();
+
+    await UserTransaction.create({
+      user_id,
+      type: "bet",
+      amount: userBet.total_bet_amount,
+      balance_before,
+      balance_after,
+      ref_id: userBet._id,
+      description: "ยกเลิกการแทงหวยและคืนเครดิต",
+      created_at: new Date(),
+    });
+
+    return userBet;
+  } catch (error) {
+    console.error("❌ cancelUserBet error:", error.message);
+    throw error;
+  }
+};
