@@ -240,7 +240,7 @@ exports.cancelUserBet = async function (user_id, bet_id) {
 
     await UserTransaction.create({
       user_id,
-      type: "bet",
+      type: "refund",
       amount: userBet.total_bet_amount,
       balance_before,
       balance_after,
