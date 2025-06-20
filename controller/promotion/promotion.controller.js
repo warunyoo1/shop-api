@@ -5,6 +5,7 @@ const {
   handleSuccessResetResponse,
 } = require("../../utils/responseHandler");
 const { isValidObjectId } = require("../../utils/utils");
+require("dotenv").config();
 
 exports.createPromotion = async (req, res) => {
   try {
@@ -102,6 +103,14 @@ exports.uploadFile = async (req, res) => {
     if (!file.mimetype.startsWith("image/")) {
       return res.status(400).json({ error: "File must be an image" });
     }
+
+    const MAX_SIZE = parseInt(process.env.MAX_IMAGE_SIZE) || 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return res.status(400).json({
+        error: `Image size must not exceed ${MAX_SIZE / 1024 / 1024}MB`,
+      });
+    }
+
     const promotionId = req.params.id;
     const { description } = req.body;
 
