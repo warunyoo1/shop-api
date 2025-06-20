@@ -42,13 +42,22 @@ const PromotionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+PromotionSchema.virtual("images", {
+  ref: "Image",
+  localField: "_id",
+  foreignField: "promotion_id",
+  justOne: false,
+});
+
 PromotionSchema.set("toJSON", {
+  virtuals: true,
   transform: (doc, ret) => {
     delete ret.__v;
     if (ret.startDate) {
       ret.startDate = new Date(ret.startDate).toISOString();
     }
-    return ret; 
+    return ret;
   },
 });
 

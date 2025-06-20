@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const Promotion = require("../../models/promotion.model");
 const User = require("../../models/user.model");
 const UserPromotion = require("../../models/userPromotions.models");
+const Image = require("../../models/img.promotion.model");
+const fs = require("fs");
+const path = require("path");
 
 exports.createPromotion = async function (promotionData) {
   try {
@@ -64,26 +67,98 @@ exports.getActivePromotions = async function () {
 };
 
 exports.getPromotionById = async function (promotionId) {
-  return await Promotion.findById(promotionId);
+  return await Promotion.findById(promotionId).populate("images");
 };
 
 exports.getAllPromotions = async function ({ page = 1, limit = 10 }) {
-  const skip = (page - 1) * limit;
-  const total = await Promotion.countDocuments();
-  const promotions = await Promotion.find()
-    .skip(skip)
-    .limit(limit)
-    .sort({ created_at: -1 });
+  try {
+    const skip = (page - 1) * limit;
+    const total = await Promotion.countDocuments();
+    const promotions = await Promotion.find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .populate("images");
 
-  return {
-    data: promotions,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
+    return {
+      data: promotions,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    throw new Error(`Failed to get promotions: ${error.message}`);
+  }
+};
+
+exports.uploadService = async (file, promotionId, description, req) => {
+  try {
+    const promotionExists = await Promotion.findById(promotionId);
+    if (!promotionExists) {
+      throw new Error("Promotion ID not found");
+    }
+    const uploadDir = path.join(__dirname, "../../uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+
+    const existingImage = await Image.findOne({ promotion_id: promotionId });
+
+    if (existingImage) {
+      const oldImagePath = path.join(
+        uploadDir,
+        path.basename(existingImage.image)
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    const filename = `${Date.now()}_${file.name}`;
+    const filepath = path.join(uploadDir, filename);
+    await file.mv(filepath);
+
+    const url = `${req.protocol}://${req.get("host")}/uploads/${filename}`;
+
+    if (existingImage) {
+      existingImage.name = file.name;
+      existingImage.description = description;
+      existingImage.image = url;
+      await existingImage.save();
+
+      return {
+        name: file.name,
+        url,
+        mongoId: existingImage._id,
+      };
+    } else {
+      const image = new Image({
+        promotion_id: promotionId,
+        name: file.name,
+        description,
+        image: url,
+      });
+
+      await image.save();
+
+      return {
+        name: file.name,
+        url,
+        mongoId: image._id,
+      };
+    }
+  } catch (error) {
+    throw new Error(`Upload failed: ${error.message}`);
+  }
+};
+
+exports.getImagesByPromotionId = async (promotion_id) => {
+  return await Image.find({ promotion_id })
+    .select("name description img createdAt -_id")
+    .lean();
 };
 
 async function createNewPromotion(promotionData) {

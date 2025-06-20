@@ -90,3 +90,34 @@ exports.getAllPromotions = async (req, res) => {
     return res.status(response.status).json(response);
   }
 };
+
+exports.uploadFile = async (req, res) => {
+  try {
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ error: "Please upload an image" });
+    }
+
+    const file = req.files.image;
+
+    if (!file.mimetype.startsWith("image/")) {
+      return res.status(400).json({ error: "File must be an image" });
+    }
+    const promotionId = req.params.id;
+    const { description } = req.body;
+
+    const result = await promotionService.uploadService(
+      file,
+      promotionId,
+      description,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: "Image uploaded successfully",
+      file: result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
