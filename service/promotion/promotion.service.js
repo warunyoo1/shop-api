@@ -194,8 +194,11 @@ async function createUserPromotionsForUsers(promotionId, userFilter) {
             consecutiveDays: 0,
           },
           reward: {
+            type: "",
             amount: 0,
+            basedOn: "",
             withdrawable: false,
+            description: "",
             givenAt: null,
           },
           note: "",
