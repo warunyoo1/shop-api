@@ -27,6 +27,10 @@ const CreditSchema = new Schema(
       type: Number,
       required: true,
     },
+    credit_promotion:{
+      type: Number,
+      default: 0,
+    },
     channel: {
       type: String,
     },

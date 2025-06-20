@@ -62,7 +62,6 @@ exports.getAllCredits = async function (req, res) {
 exports.getCreditsByUserId = async function (req, res) {
   try {
     const { user_id } = req.params;
-    console.log("user_id", user_id);
     const { page = 1, limit = 10, status } = req.query || {};
 
     const result = await creditService.getCreditsByUserId(user_id, {

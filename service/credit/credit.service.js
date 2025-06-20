@@ -25,12 +25,176 @@ exports.createCredit = async function ({
       throw new Error("จำนวนเงินต้องมากกว่า 0");
     }
 
-    // สร้างข้อมูล credit ใหม่
+    // เช็คว่ามีี  userPromotions  หรือยัง  ถ้าไม่มีให้สร้าง 
+    let userPromotion = await UserPromotion.findOne({ user_id });
+    if(!userPromotion){
+      // ทำการสร้างใหม่
+      const newUserPromotion = new UserPromotion({
+        user_id,
+        balance: 0,
+        promotions: [],
+      });
+      userPromotion = await newUserPromotion.save();
+    }
+
+    // เช็ค promotion  ว่า มีอยุ่ในช่วงเวลานี้ไหม  ถ้า endDate เป็น null แปลว่าไม่มีวันอายุโปร ดึงมา  และต้องเป็น ประเภท  daily-deposit instant-bonus turnover-bonus
+    const promotions = await Promotion.find({
+      type: { $in: ["daily-deposit", "instant-bonus", "turnover-bonus"] },
+      startDate: { $lte: new Date() },
+      $or: [
+        { endDate: { $gte: new Date() } },
+        { endDate: null }
+      ]
+    });
+    let credit_promotion = 0;
+    let promotion_id = null;
+    if(promotions.length > 0){
+      // ทำการ foreach แต่ละ promotion ตามเงื่อนไข
+      for(const promotion of promotions){
+        const type = promotion.type;
+        if(type === "daily-deposit"){
+          const conditions = promotion.conditions;
+          // ฝากขั้นต่ำ
+          const depositAmount =  conditions.depositAmount;
+          // ฝากครบกี่วัน (เช่น ฝาก 7 วัน)
+          const depositDays = conditions.depositDays;
+           // โบนัสสูงสุดที่รับได้ ถ้า reward เป็น % (เช่น ไม่เกิน 500)
+          const maxBonusAmount = conditions.maxBonusAmount;
+          // จำกัดว่าฝากได้กี่ครั้ง/วัน
+          const maxDepositCountPerDay = conditions.maxDepositCountPerDay;
+
+          // เช็ค ยอดฝากขั้นต่ำก่อน
+          if(amount >= depositAmount){
+             
+            // เช็คว่ามี promotions array หรือไม่ ถ้าไม่มีให้สร้างใหม่
+            if(!userPromotion.promotions || !Array.isArray(userPromotion.promotions)){
+              userPromotion.promotions = [];
+            }
+            
+            let check_promotion = userPromotion.promotions.find(p => p.promotion_id.equals(promotion._id));
+            if(check_promotion){
+              // มีโปรนี้อยู่แล้ว เช็คเงื่อนไขต่อ
+              const today = new Date();
+              const todayStr = moment(today).format('YYYY-MM-DD'); // ใช้ moment-timezone
+              const lastDepositStr = check_promotion.progress.lastDepositDate ?  moment(check_promotion.progress.lastDepositDate).format('YYYY-MM-DD') : null;
+              
+              // เช็คว่าฝากวันนี้แล้วหรือยัง
+              if(lastDepositStr === todayStr){
+                // ฝากวันนี้แล้ว เช็คจำนวนครั้งต่อวัน
+                if(maxDepositCountPerDay > 0 && check_promotion.progress.depositCount >= maxDepositCountPerDay){
+                  continue; // เกินจำนวนครั้งต่อวันแล้ว ข้ามไปโปรถัดไป
+                }
+              }
+              
+              // อัพเดทข้อมูลการฝาก
+              check_promotion.progress.depositCount += 1;
+              check_promotion.progress.depositTotal += amount;
+              check_promotion.progress.lastDepositDate = today;
+              check_promotion.updatedAt = today;
+              
+              // เช็คว่าครบเงื่อนไขหรือยัง (จำนวนครั้งที่ฝากครบแล้ว)
+              if(check_promotion.progress.depositCount >= depositDays){
+                // ครบเงื่อนไขแล้ว
+                if(check_promotion.status === 'pending'){
+                  check_promotion.status = 'completed';
+                  
+                  // คำนวณรางวัล
+                  const rewards = promotion.rewards;
+                  
+                  // เช็คว่ามี reward หรือไม่
+                  if(!rewards){
+                    console.log("ไม่พบ reward ใน promotion:", promotion._id);
+                    continue; // ข้ามไปโปรถัดไป
+                  }
+                  
+                  const rewardType = rewards.type || 'percentage';
+                  const rewardAmount = rewards.amount || 10; // 10% default
+                  const rewardBasedOn = rewards.basedOn || 'deposit';
+                  
+                  let finalRewardAmount = 0;
+                  
+                  if(rewardType === 'percentage'){
+                    // คำนวณเป็นเปอร์เซ็นต์
+                    if(rewardBasedOn === 'deposit'){
+                      finalRewardAmount = (check_promotion.progress.depositTotal * rewardAmount) / 100;
+                    } else if(rewardBasedOn === 'amount'){
+                      finalRewardAmount = (amount * rewardAmount) / 100;
+                    }
+                  } else if(rewardType === 'fixed'){
+                    // รางวัลคงที่
+                    finalRewardAmount = rewardAmount;
+                  }
+                  
+                  // เช็ค maxBonusAmount (ถ้าเป็น 0 หรือ null = ไม่จำกัด)
+                  if(maxBonusAmount && maxBonusAmount > 0 && finalRewardAmount > maxBonusAmount){
+                    finalRewardAmount = maxBonusAmount;
+                  }
+                  
+                  check_promotion.reward.amount = finalRewardAmount;
+                  check_promotion.reward.withdrawable = rewards.withdrawable || false;
+                  check_promotion.reward.givenAt = today;
+                  
+                  // เพิ่มเครดิตให้ user ทันที
+                  credit_promotion += finalRewardAmount;
+                  promotion_id = promotion._id; // เก็บ promotion_id ที่ใช้
+                }
+              }
+              
+            }else{
+              // ยังไม่มีโปรนี้ สร้างใหม่
+              const today = new Date();
+              const newUserPromotionItem = {
+                promotion_id: promotion._id,
+                status: 'pending',
+                progress: {
+                  depositCount: 1,
+                  depositTotal: amount,
+                  betTotal: 0,
+                  lossTotal: 0,
+                  lastDepositDate: today,
+                  consecutiveDays: 1
+                },
+                reward: {
+                  amount: 0,
+                  withdrawable: false
+                },
+                createdAt: today,
+                updatedAt: today
+              };
+              
+              userPromotion.promotions.push(newUserPromotionItem);
+              promotion_id = promotion._id; // เก็บ promotion_id ที่ใช้
+            }
+             
+          }
+
+
+         
+        }else if(type === "instant-bonus"){
+          // 
+
+        }else if(type === "turnover-bonus"){
+          //
+
+        }
+      }
+    }
+
+    console.log("userPromotion", credit_promotion);
+    // บันทึกข้อมูล userPromotion
+    await userPromotion.save();
+
+  
+    // อัพเดท netAmount ใน credit
+    const finalAmount = amount + credit_promotion;
     const newCredit = new Credit({
       user_id: user._id,
+      promotion_id: promotion_id,
       amount,
-      netAmount: amount,
+      credit_promotion: credit_promotion,
+      netAmount: finalAmount,
       fee: 0,
+      
       channel,
       description,
       status: 'success',
@@ -41,8 +205,8 @@ exports.createCredit = async function ({
     // บันทึกข้อมูล
     await newCredit.save();
 
-    //ทำการเพิ่ม credit ให้กับ user
-    user.credit += amount;
+    //ทำการเพิ่ม credit ให้กับ user (รวม promotion แล้ว)
+    user.credit += finalAmount;
     await user.save();
 
     return newCredit;

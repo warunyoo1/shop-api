@@ -35,9 +35,14 @@ const PromotionSchema = new mongoose.Schema(
       maxDepositCountPerDay: { type: Number, default: null },
     },
     rewards: {
-      credit: { type: Number, default: null },
-      withdrawable: { type: Boolean, required: true, default: null },
-      description: { type: String, default: "" },
+      // credit: { type: Number, default: null },
+      // withdrawable: { type: Boolean, required: true, default: null },
+      // description: { type: String, default: "" },
+      type: { type: String, enum: ["fixed", "percentage"], default: null },
+      amount: { type: Number, default: null },
+      basedOn: { type: String, enum: ["deposit", "bet", "loss"], default: null },
+      withdrawable: { type: Boolean, default: null },
+      description: { type: String, default: null },
     },
   },
   { timestamps: true }
