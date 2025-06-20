@@ -180,7 +180,6 @@ exports.createCredit = async function ({
       }
     }
 
-    console.log("userPromotion", credit_promotion);
     // บันทึกข้อมูล userPromotion
     await userPromotion.save();
 
