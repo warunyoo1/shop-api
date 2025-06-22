@@ -95,15 +95,9 @@ exports.createBettingTypeSchema = (data) => {
 
 exports.updateBettingTypeSchema = (data) => {
   const schema = Joi.object({
-    name: Joi.string().required().label("Name").messages({
-      "any.required": `"Name" is required.`,
-      "string.empty": `"Name" cannot be empty.`,
-    }),
-    description: Joi.string().required().label("Description").messages({
-      "any.required": `"Description" is required.`,
-      "string.empty": `"Description" cannot be empty.`,
-    }),
-    code: Joi.string().allow("", null).label("Code"),
+    name: Joi.string().required(),
+    description: Joi.string().allow("", null).optional(),
+    code: Joi.string().allow("", null).optional(),
   });
 
   return schema.validate(data, { abortEarly: false });
