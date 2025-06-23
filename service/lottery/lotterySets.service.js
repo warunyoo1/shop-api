@@ -78,62 +78,83 @@ exports.getLotteryById = async function (lotteryId) {
 exports.updateLotterySets = async function (lotteryId, data) {
   try {
     const updateData = {};
-    Object.keys(data).forEach((key) => {
-      let value = data[key];
-      if (key === "betting_options") {
-        if (
-          value === undefined ||
-          value === null ||
-          (Array.isArray(value) && value.length === 0) ||
-          (typeof value === "string" && value.trim() === "")
-        ) {
-          return;
-        }
+    const bettingOptionUpdates = [];
 
-        if (Array.isArray(value)) {
-          value = value.map((opt) => {
-            const filtered = { ...opt };
-            Object.keys(filtered).forEach((fkey) => {
-              if (filtered[fkey] === "" || filtered[fkey] === null) {
-                delete filtered[fkey];
-              }
+    for (const [key, value] of Object.entries(data)) {
+      if (key === "betting_options") {
+        if (!Array.isArray(value) || value.length === 0) continue;
+
+        value.forEach((opt) => {
+          const { betting_type_id, ...fields } = opt;
+
+          if (!betting_type_id) return;
+
+          const setFields = {};
+          for (const [fKey, fValue] of Object.entries(fields)) {
+            if (fValue !== "" && fValue !== null && fValue !== undefined) {
+              setFields[`betting_options.$[elem].${fKey}`] = fValue;
+            }
+          }
+
+          if (Object.keys(setFields).length > 0) {
+            bettingOptionUpdates.push({
+              filter: { "elem.betting_type_id": betting_type_id },
+              set: setFields,
             });
-            return filtered;
-          });
-        }
-        updateData[key] = value;
-      } else if (typeof value === "string") {
-        if (value.trim() !== "") {
-          updateData[key] = value;
-        }
-      } else if (Array.isArray(value)) {
-        if (value.length > 0) {
-          updateData[key] = value;
-        }
-      } else if (typeof value === "object" && value !== null) {
-        if (Object.keys(value).length > 0) {
-          updateData[key] = value;
-        }
+          }
+        });
+
+        continue;
+      }
+
+      if (typeof value === "string" && value.trim() !== "") {
+        updateData[key] = value.trim();
       } else if (typeof value === "number" || typeof value === "boolean") {
         updateData[key] = value;
+      } else if (Array.isArray(value) && value.length > 0) {
+        updateData[key] = value;
+      } else if (
+        typeof value === "object" &&
+        value !== null &&
+        Object.values(value).some(
+          (v) => v !== "" && v !== null && v !== undefined
+        )
+      ) {
+        const filtered = {};
+        for (const [k, v] of Object.entries(value)) {
+          if (v !== "" && v !== null && v !== undefined) {
+            filtered[k] = v;
+          }
+        }
+        if (Object.keys(filtered).length > 0) {
+          updateData[key] = filtered;
+        }
       }
-    });
-
-    if (Object.keys(updateData).length === 0) {
-      throw new Error("No valid fields to update.");
     }
 
-    const updatedLotterySets = await LotterySets.findByIdAndUpdate(
-      lotteryId,
-      updateData,
-      { new: true }
-    );
+    let updatedDoc = null;
+    if (Object.keys(updateData).length > 0) {
+      updatedDoc = await LotterySets.findByIdAndUpdate(lotteryId, updateData, {
+        new: true,
+      });
+    } else {
+      updatedDoc = await LotterySets.findById(lotteryId);
+    }
 
-    if (!updatedLotterySets) {
+    if (!updatedDoc) {
       throw new Error("Lottery not found.");
     }
 
-    return updatedLotterySets;
+    for (const update of bettingOptionUpdates) {
+      await LotterySets.updateOne(
+        { _id: lotteryId },
+        { $set: update.set },
+        { arrayFilters: [update.filter] }
+      );
+    }
+
+    const finalDoc = await LotterySets.findById(lotteryId);
+    return finalDoc;
   } catch (error) {
     console.error("Error updating lottery item:", error.message);
     throw error;
