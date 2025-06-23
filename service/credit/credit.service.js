@@ -56,23 +56,40 @@ exports.createCredit = async function ({
     let promotion_id = null;
     
     if(eligiblePromotions.length > 0){
+      console.log(`🎯 Found ${eligiblePromotions.length} eligible promotions for user ${user._id}`);
+      
       // ตรวจสอบโปรที่มีอยู่ก่อน
       const existingResult = await checkExistingPromotions(user, userPromotion, eligiblePromotions, amount);
       
       if(existingResult.foundActivePromotion) {
         // พบโปรที่กำลังดำเนินการและได้รับโบนัสแล้ว
+        console.log(`💰 Found active promotion, bonus: ${existingResult.credit_promotion}`);
         credit_promotion = existingResult.credit_promotion;
         promotion_id = existingResult.promotion_id;
       } else {
         // ไม่พบโปรที่กำลังดำเนินการ ให้ตรวจสอบโปรใหม่
+        console.log(`🆕 Checking new promotions...`);
         const newResult = await checkNewPromotions(user, userPromotion, eligiblePromotions, amount);
         credit_promotion = newResult.credit_promotion;
         promotion_id = newResult.promotion_id;
+        console.log(`💰 New promotion result, bonus: ${credit_promotion}`);
       }
+    } else {
+      console.log(`❌ No eligible promotions found for user ${user._id}`);
     }
 
     // บันทึกข้อมูล userPromotion
+    console.log(`💾 Saving userPromotion for user ${user._id}...`);
     await userPromotion.save();
+    console.log(`✅ UserPromotion saved successfully for user ${user._id}`);
+    
+    // ตรวจสอบสถานะสุดท้ายของ promotions
+    if (userPromotion.promotions && userPromotion.promotions.length > 0) {
+      console.log(`📋 Final promotion statuses for user ${user._id}:`);
+      userPromotion.promotions.forEach(promo => {
+        console.log(`  - Promotion ${promo.promotion_id}: ${promo.status}, Reward: ${promo.reward.amount}`);
+      });
+    }
 
     // อัพเดท netAmount ใน credit
     const finalAmount = amount + credit_promotion;
@@ -465,6 +482,15 @@ async function handleDailyDepositPromotion(user, userPromotion, promotion, amoun
 
   if (check_promotion) {
     // มีโปรนี้อยู่แล้ว เช็คเงื่อนไขต่อ
+    
+    // เช็คว่าได้รับโบนัสไปแล้วหรือยัง
+    if (check_promotion.status === 'completed') {
+      console.log(`🚫 Daily deposit promotion ${promotion._id} already completed for user ${user._id}`);
+      return { credit_promotion: 0, promotion_id: null };
+    }
+    
+    console.log(`📝 Processing existing daily deposit promotion ${promotion._id} for user ${user._id}, status: ${check_promotion.status}`);
+    
     const todayStr = moment(today).format('YYYY-MM-DD');
     const lastDepositStr = check_promotion.progress.lastDepositDate ? 
       moment(check_promotion.progress.lastDepositDate).format('YYYY-MM-DD') : null;
@@ -517,6 +543,15 @@ async function handleDailyDepositPromotion(user, userPromotion, promotion, amoun
         check_promotion.reward.amount = finalRewardAmount;
         check_promotion.reward.withdrawable = rewards.withdrawable || false;
         check_promotion.reward.givenAt = today;
+
+        console.log(`✅ Daily deposit bonus given: ${finalRewardAmount} for promotion ${promotion._id}, user ${user._id}`);
+
+        // บอก Mongoose ว่ามีการเปลี่ยนแปลงใน promotions array
+        userPromotion.markModified('promotions');
+        
+        // บันทึกการเปลี่ยนแปลงลงฐานข้อมูลทันที
+        await userPromotion.save();
+        console.log(`💾 Daily deposit status updated to 'completed' for promotion ${promotion._id}, user ${user._id}`);
 
         return {
           credit_promotion: finalRewardAmount,
@@ -572,6 +607,15 @@ async function handleInstantBonusPromotion(user, userPromotion, promotion, amoun
 
   if (check_promotion) {
     // มีโปรนี้อยู่แล้ว เช็คเงื่อนไขต่อ
+    
+    // เช็คว่าได้รับโบนัสไปแล้วหรือยัง
+    if (check_promotion.status === 'completed') {
+      console.log(`🚫 Promotion ${promotion._id} already completed for user ${user._id}`);
+      return { credit_promotion: 0, promotion_id: null };
+    }
+    
+    console.log(`📝 Processing existing promotion ${promotion._id} for user ${user._id}, status: ${check_promotion.status}`);
+    
     const todayStr = moment(today).format('YYYY-MM-DD');
     const lastDepositStr = check_promotion.progress.lastDepositDate ? 
       moment(check_promotion.progress.lastDepositDate).format('YYYY-MM-DD') : null;
@@ -611,6 +655,13 @@ async function handleInstantBonusPromotion(user, userPromotion, promotion, amoun
     };
 
     userPromotion.promotions.push(newUserPromotionItem);
+    
+    // บอก Mongoose ว่ามีการเปลี่ยนแปลงใน promotions array
+    userPromotion.markModified('promotions');
+    await userPromotion.save();
+    
+    check_promotion = userPromotion.promotions.find(p => p.promotion_id.equals(promotion._id));
+    console.log(`🆕 Created new promotion ${promotion._id} for user ${user._id}`);
   }
 
   // คำนวณโบนัสทันที
@@ -638,10 +689,21 @@ async function handleInstantBonusPromotion(user, userPromotion, promotion, amoun
 
     // อัพเดทข้อมูล reward ใน userPromotion
     if (check_promotion) {
+      console.log(`📊 Before update - Status: ${check_promotion.status}, Reward: ${check_promotion.reward.amount}`);
+      
       check_promotion.reward.amount = finalRewardAmount;
       check_promotion.reward.withdrawable = rewards.withdrawable || false;
       check_promotion.reward.givenAt = today;
       check_promotion.status = 'completed';
+      
+      // บอก Mongoose ว่ามีการเปลี่ยนแปลงใน promotions array
+      userPromotion.markModified('promotions');
+      
+      console.log(`✅ Instant bonus given: ${finalRewardAmount} for promotion ${promotion._id}, user ${user._id}`);
+      
+      // บันทึกการเปลี่ยนแปลงลงฐานข้อมูลทันที
+      await userPromotion.save();
+      console.log(`💾 Status updated to 'completed' for promotion ${promotion._id}, user ${user._id}`);
     }
 
     return {
@@ -666,9 +728,12 @@ async function checkExistingPromotions(user, userPromotion, eligiblePromotions, 
   }
 
   for (const userPromo of userPromotion.promotions) {
-    if (userPromo.status === 'pending') {
+    // ตรวจสอบทั้ง pending และ completed status
+    if (userPromo.status === 'pending' || userPromo.status === 'completed') {
       const matchingPromotion = eligiblePromotions.find(p => p._id.equals(userPromo.promotion_id));
       if (matchingPromotion) {
+        console.log(`🔍 Checking existing promotion ${userPromo.promotion_id} for user ${user._id}, status: ${userPromo.status}`);
+        
         let result = { credit_promotion: 0, promotion_id: null };
 
         switch (matchingPromotion.type) {
@@ -696,6 +761,15 @@ async function checkExistingPromotions(user, userPromotion, eligiblePromotions, 
 // ฟังก์ชั่นตรวจสอบโปรใหม่
 async function checkNewPromotions(user, userPromotion, eligiblePromotions, amount) {
   for (const promotion of eligiblePromotions) {
+    // เช็คว่าโปรนี้มีอยู่ใน userPromotion และได้รับโบนัสไปแล้วหรือยัง
+    const existingUserPromo = userPromotion.promotions.find(p => p.promotion_id.equals(promotion._id));
+    if (existingUserPromo && existingUserPromo.status === 'completed') {
+      console.log(`🚫 Skipping completed promotion ${promotion._id} for user ${user._id}`);
+      continue; // ข้ามโปรที่ได้รับโบนัสไปแล้ว
+    }
+    
+    console.log(`🔍 Checking new promotion ${promotion._id} for user ${user._id}`);
+    
     let result = { credit_promotion: 0, promotion_id: null };
 
     switch (promotion.type) {
