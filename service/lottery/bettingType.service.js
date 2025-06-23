@@ -3,8 +3,20 @@ const LotteryType = require("../../models/lotteryType.model");
 
 exports.createBettingType = async ({ name, description, code }) => {
   try {
+    const normalizedName = name.replace(/\s+/g, "").toLowerCase();
+    const allTypes = await bettingTypes.find();
+
+    const isDuplicate = allTypes.some(
+      (type) =>
+        type.name &&
+        type.name.replace(/\s+/g, "").toLowerCase() === normalizedName
+    );
+    if (isDuplicate) {
+      throw new Error("ชื่อประเภทนี้ถูกใช้ไปแล้ว");
+    }
+
     const newBettingType = await bettingTypes.create({
-      name,
+      name: name.trim(),
       description,
       code,
     });

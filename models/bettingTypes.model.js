@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const bettingTypesSchema = new mongoose.Schema(
   {
-    name: { type: String, default: "" },
+    name: { type: String, default: "", required: true },
     description: { type: String, default: "" },
     code: { type: String, default: "" },
     createdAt: {
