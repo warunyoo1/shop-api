@@ -18,7 +18,6 @@ exports.createLotterySets = async function (data) {
   }
 };
 
-
 exports.getLotterySets = async function (query) {
   try {
     const { status, limit = 10, page = 1, slug } = query;
@@ -78,9 +77,55 @@ exports.getLotteryById = async function (lotteryId) {
 
 exports.updateLotterySets = async function (lotteryId, data) {
   try {
+    const updateData = {};
+    Object.keys(data).forEach((key) => {
+      let value = data[key];
+      if (key === "betting_options") {
+        if (
+          value === undefined ||
+          value === null ||
+          (Array.isArray(value) && value.length === 0) ||
+          (typeof value === "string" && value.trim() === "")
+        ) {
+          return;
+        }
+
+        if (Array.isArray(value)) {
+          value = value.map((opt) => {
+            const filtered = { ...opt };
+            Object.keys(filtered).forEach((fkey) => {
+              if (filtered[fkey] === "" || filtered[fkey] === null) {
+                delete filtered[fkey];
+              }
+            });
+            return filtered;
+          });
+        }
+        updateData[key] = value;
+      } else if (typeof value === "string") {
+        if (value.trim() !== "") {
+          updateData[key] = value;
+        }
+      } else if (Array.isArray(value)) {
+        if (value.length > 0) {
+          updateData[key] = value;
+        }
+      } else if (typeof value === "object" && value !== null) {
+        if (Object.keys(value).length > 0) {
+          updateData[key] = value;
+        }
+      } else if (typeof value === "number" || typeof value === "boolean") {
+        updateData[key] = value;
+      }
+    });
+
+    if (Object.keys(updateData).length === 0) {
+      throw new Error("No valid fields to update.");
+    }
+
     const updatedLotterySets = await LotterySets.findByIdAndUpdate(
       lotteryId,
-      data,
+      updateData,
       { new: true }
     );
 

@@ -9,7 +9,7 @@ exports.RegisterValidate = (data) => {
     bank_name: Joi.string().allow("", null).optional(),
     bank_number: Joi.string().allow("", null).optional(),
     full_name: Joi.string().allow("", null).optional(),
-    referral_link : Joi.string().allow("", null).optional(),
+    referral_link: Joi.string().allow("", null).optional(),
     user_id: Joi.string().allow("", null).optional(),
   });
 
@@ -119,8 +119,6 @@ exports.validateCreateLotteryType = (data) => {
 
   return schema.validate(data, { abortEarly: false });
 };
-
-
 
 // Validator สำหรับการถอนเงิน (ยังไม่ได้ใช้)
 // exports.validateCreateWithdrawal = (data) => {
