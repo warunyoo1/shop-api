@@ -27,13 +27,13 @@ exports.create = async (data, lottery_set_id) => {
   }
 };
 
-exports.getHuay = async (lotteryItemId) => {
+exports.getHuay = async (lottery_set_id) => {
   try {
-    if (!lotteryItemId) {
-      throw new Error("lotteryItemId is required.");
+    if (!lottery_set_id) {
+      throw new Error("lottery_set_id is required.");
     }
 
-    const huayData = await huay.find({ lottery_item_id: lotteryItemId });
+    const huayData = await huay.find({ lottery_set_id });
     return huayData;
   } catch (error) {
     console.error("Failed to retrieve Huay data:", error.message);
@@ -137,5 +137,25 @@ exports.evaluateUserBetsByLotterySet = async function (lottery_set_id) {
   } catch (error) {
     console.error("❌ evaluateUserBetsByLotterySet error:", error.message);
     throw error;
+  }
+};
+
+exports.getAllHuay = async (page = 1, limit = 10) => {
+  try {
+    const skip = (page - 1) * limit;
+    const total = await huay.countDocuments();
+    const huays = await huay.find().skip(skip).limit(limit);
+    return {
+      huays,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error("Failed to retrieve all Huay data:", error.message);
+    throw new Error("Error retrieving all Huay data: " + error.message);
   }
 };

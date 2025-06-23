@@ -4,6 +4,7 @@ const lotterySetsController = require("../controller/lottery/lotterySets.control
 const lotteryTypeController = require("../controller/lottery/lotteryType.controller");
 const huayController = require("../controller/lottery/huay.controller");
 const bettingTypesController = require("../controller/lottery/bettingTypes.controller");
+const { handleError } = require("puppeteer");
 
 // Route to create a lottery Sets
 router.post("/createSets", lotterySetsController.createLotterySets);
@@ -39,10 +40,10 @@ router.get(
 // Route to create a Huay ยังไม่ได้เริ่มใช้งาน
 router.post("/createHuay", huayController.createHuay); //Create Huay Manual //รอเเก้ไข
 router.post("/createHuayAPI", huayController.createHuayAPI); // Create Huay from API
-router.get("/getHuay/all/:id", huayController.getHuay); // Get Huay //รอเเก้ไข
-router.get("/getHuay/:id", huayController.getHuayById); // Get Huay by ID //รอเเก้ไข
-router.put("/updateHuay/:id", huayController.updateHuay); // Update Huay //รอเเก้ไข
-
+router.get("/huay", huayController.getAllHuay); // Get Huay A;;
+router.get("/huay/set/:id", huayController.getHuay); // Get Huay By Lotter Set
+router.get("/huay/:id", huayController.getHuayById); // Get Huay by ID 
+router.put("/huay/:id", huayController.updateHuay); // Update Huay //รอเเก้ไข
 
 //ผลหวย
 router.post("/getLotteryResult", huayController.evaluateLotteryResults); // Get Lottery
