@@ -327,3 +327,17 @@ exports.getUserPromotionsById = async function (userId) {
     throw new Error(`Failed to get UserPromotion by userId: ${error.message}`);
   }
 };
+
+exports.deletePromotionById = async (promotionId) => {
+  try {
+    const deletedPromotion = await Promotion.findByIdAndDelete(promotionId);
+    await UserPromotion.updateMany(
+      {},
+      { $pull: { promotions: { promotion_id: promotionId } } }
+    );
+
+    return deletedPromotion;
+  } catch (error) {
+    throw new Error("Error deleting promotion: " + error.message);
+  }
+};

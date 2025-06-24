@@ -177,3 +177,30 @@ exports.getUserPromotionsById = async (req, res) => {
     return res.status(response.status).json(response);
   }
 };
+
+exports.deletePromotionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      const response = await handleError(
+        "Invalid ObjectId",
+        "Invalid promotion ID format",
+        400
+      );
+      return res.status(400).json(response);
+    }
+
+    const result = await promotionService.deletePromotionById(id);
+
+    const response = await handleSuccess(
+      result,
+      "Promotion and related user promotions deleted successfully",
+      200
+    );
+    return res.status(200).json(response);
+  } catch (error) {
+    const response = await handleError(error, "Failed to delete promotion");
+    return res.status(response.status).json(response);
+  }
+};
