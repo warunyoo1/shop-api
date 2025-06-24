@@ -12,6 +12,6 @@ router.get("/user", promotionController.getAllUserPromotions);
 router.get("/user/:id", promotionController.getUserPromotionsById);
 router.get("/:id", promotionController.getPromotionById);
 router.post("/upload/:id", promotionController.uploadFile);
-router.delete("/delete/:id", promotionController.deletePromotionById);
+router.delete("/:id", promotionController.deletePromotionById);
 
 module.exports = router;
