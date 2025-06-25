@@ -8,6 +8,20 @@ const path = require("path");
 
 exports.createPromotion = async function (promotionData) {
   try {
+    const normalizedType = (promotionData.type || "").trim().toLowerCase();
+    const normalizedTarget = (promotionData.target || "").trim().toLowerCase();
+
+    // เช็คซ้ำ: ต้องไม่มี promotion ที่ type และ target ซ้ำกัน (case-insensitive)
+    const exists = await Promotion.findOne({
+      type: { $regex: new RegExp(`^${normalizedType}$`, "i") },
+      target: { $regex: new RegExp(`^${normalizedTarget}$`, "i") },
+    });
+    if (exists) {
+      throw new Error("ประเภทโปรโมชั่นและกลุ่มเป้าหมายนี้ถูกใช้ไปแล้ว");
+    }
+    promotionData.type = normalizedType;
+    promotionData.target = normalizedTarget;
+
     // 🔍 ตรวจสอบเฉพาะตอน target = 'specific'
     if (promotionData.target === "specific") {
       await validateSpecificUsers(promotionData.specificUsers || []);
