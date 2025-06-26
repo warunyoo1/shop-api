@@ -16,7 +16,11 @@ exports.createAdmin = async (
       $or: [{ username }, { email }],
     });
 
-    if (existingAdmin) {
+    const existingSuperadmin = await superadmin.findOne({
+      $or: [{ username }, { email }],
+    });
+
+    if (existingAdmin || existingSuperadmin) {
       return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
     }
     const newAdmin = new admin({
