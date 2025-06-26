@@ -32,7 +32,6 @@ exports.createAdmin = async (req, res) => {
 
     const result = await adminService.createAdmin(
       body.username,
-      body.email,
       body.password,
       body.phone,
       body.address,

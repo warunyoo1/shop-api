@@ -3,29 +3,21 @@ const superadmin = require("../../models/superadmin.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // create admin
-exports.createAdmin = async (
-  username,
-  email,
-  password,
-  phone,
-  address,
-  role
-) => {
+exports.createAdmin = async (username, password, phone, address, role) => {
   try {
     const existingAdmin = await admin.findOne({
-      $or: [{ username }, { email }],
+      $or: [{ username }],
     });
 
     const existingSuperadmin = await superadmin.findOne({
-      $or: [{ username }, { email }],
+      $or: [{ username }],
     });
 
     if (existingAdmin || existingSuperadmin) {
-      return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+      return handleError(null, "Username  นี้มีอยู่ในระบบแล้ว", 400);
     }
     const newAdmin = new admin({
       username,
-      email,
       password,
       phone,
       address,

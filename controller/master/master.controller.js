@@ -13,11 +13,9 @@ exports.createMaster = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const { username, email, password, phone, commission_percentage } =
-      req.body;
+    const { username, password, phone, commission_percentage } = req.body;
     const result = await masterService.createMaster(
       username,
-      email,
       password,
       phone,
       commission_percentage

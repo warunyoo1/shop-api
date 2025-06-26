@@ -5,7 +5,6 @@ const slugify = require("slugify");
 const masterSchema = new mongoose.Schema({
   masterId: { type: String },
   username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phone: { type: String },
   share_url_master: { type: String, default: "" },

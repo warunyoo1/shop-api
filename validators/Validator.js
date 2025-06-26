@@ -49,7 +49,6 @@ exports.adminValidate = (data) => {
   const schema = Joi.object({
     id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
-    email: Joi.string().email().required(),
     password: Joi.string().allow(null).optional(),
     phone: Joi.string().min(10).max(15).required(),
     address: Joi.string().allow(null).optional(),
@@ -69,7 +68,6 @@ exports.masterValidate = (data) => {
   const schema = Joi.object({
     id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
-    email: Joi.string().email().required(),
     password: Joi.string().allow(null).optional(),
     phone: Joi.string().min(10).max(15).required(),
     commission_percentage: Joi.number().min(0).max(100).required(),

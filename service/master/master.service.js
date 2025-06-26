@@ -6,23 +6,21 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 // เพิ่ม master
 exports.createMaster = async (
   username,
-  email,
   password,
   phone,
   commission_percentage
 ) => {
   try {
     const existingMaster = await master.findOne({
-      $or: [{ username }, { email }],
+      $or: [{ username }],
     });
 
     if (existingMaster) {
-      return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+      return handleError(null, "Username  นี้มีอยู่ในระบบแล้ว", 400);
     }
 
     const newMaster = new master({
       username,
-      email,
       password,
       phone,
       commission_percentage,
