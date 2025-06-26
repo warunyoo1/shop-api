@@ -6,7 +6,6 @@ const superadminSchema = new mongoose.Schema({
   email: { type: String },
   password: { type: String },
   phone: { type: String },
-  address: { type: String, default: "" },
   profilePicture: { type: String, default: "" },
   role: { type: String, default:'superadmin'},
   active: { type: Boolean, default: true },
