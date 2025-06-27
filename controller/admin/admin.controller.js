@@ -184,7 +184,11 @@ exports.updateAdmin = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const result = await adminService.updateadmin(id, body);
+    const result = await adminService.updateadmin(id, body, {
+      user_id: req.user._id,
+      role: req.user.role,
+      full_name: req.user.username
+    });
     return res.status(result.status).json(result);
   } catch (err) {
     await logAction("update_admin_error", {

@@ -128,7 +128,11 @@ exports.updateMaster = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const result = await masterService.updateMaster(id, req.body);
+    const result = await masterService.updateMaster(id, req.body, {
+      user_id: req.user._id,
+      role: req.user.role,
+      full_name: req.user.username
+    });
     return res.status(result.status).json(result);
   } catch (error) {
     const response = await handleError(error);

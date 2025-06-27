@@ -1,6 +1,7 @@
 const superadmin = require("../../models/superadmin.model");
 const admin = require("../../models/admin.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
+const bcrypt = require("bcrypt");
 
 exports.createSuperadmin = async ({ username, password, phone }) => {
     try {
@@ -76,7 +77,7 @@ exports.getSuperadminById = async (id) => {
     }
 };
 
-exports.updateSuperadmin = async (id, updateData) => {
+exports.updateSuperadmin = async (id, updateData, currentUser) => {
     try {
         if (!id) {
             return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
@@ -97,8 +98,54 @@ exports.updateSuperadmin = async (id, updateData) => {
             }
         }
 
-        updateData.updatedAt = new Date();
+        // ถ้ามีการเปลี่ยนรหัสผ่าน
+        if (updateData.password) {
+            const superadminData = await superadmin.findById(id);
+            if (!superadminData) {
+                return handleError(null, "ไม่พบ Superadmin ที่ต้องการแก้ไข", 404);
+            }
 
+            // เข้ารหัสรหัสผ่านใหม่
+            const hashedPassword = await bcrypt.hash(updateData.password, 10);
+            
+            // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
+            const passwordHistory = {
+                password: hashedPassword,
+                changed_by: {
+                    user_id: currentUser.user_id,
+                    role: currentUser.role,
+                    full_name: currentUser.full_name
+                }
+            };
+
+            const now = new Date();
+
+            // อัพเดทข้อมูล
+            const updatedSuperadmin = await superadmin.findByIdAndUpdate(
+                id,
+                { 
+                    $set: { 
+                        ...updateData,
+                        password: hashedPassword,
+                        last_password_change: {
+                            date: now,
+                            changed_by: {
+                                user_id: currentUser.user_id,
+                                role: currentUser.role,
+                                full_name: currentUser.full_name
+                            }
+                        }
+                    },
+                    $push: { password_history: { ...passwordHistory, changed_at: now } }
+                },
+                { new: true }
+            ).select("-password -password_history.password");
+
+            return handleSuccess(updatedSuperadmin, "อัพเดท Superadmin และรหัสผ่านสำเร็จ");
+        }
+
+        // กรณีไม่มีการเปลี่ยนรหัสผ่าน
+        updateData.updatedAt = new Date();
         const updated = await superadmin.findByIdAndUpdate(
             id,
             { $set: updateData },

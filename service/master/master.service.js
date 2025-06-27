@@ -2,6 +2,7 @@ const master = require("../../models/master.model");
 const { generateMasterId } = require("../../utils/utils");
 const user = require("../../models/user.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
+const bcrypt = require("bcrypt");
 
 // เพิ่ม master
 exports.createMaster = async (data) => {
@@ -126,7 +127,7 @@ exports.getMasterById = async (id) => {
 };
 
 // อัพเดตข้อมูล master
-exports.updateMaster = async (id, data) => {
+exports.updateMaster = async (id, data, currentUser) => {
   try {
     if (!id) {
       return handleError(null, "กรุณาระบุ ID ของ Master", 400);
@@ -148,8 +149,49 @@ exports.updateMaster = async (id, data) => {
       }
     }
 
-    data.updatedAt = new Date();
+    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    if (data.password) {
+      // เข้ารหัสรหัสผ่านใหม่
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      
+      // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
+      const passwordHistory = {
+        password: hashedPassword,
+        changed_by: {
+          user_id: currentUser.user_id,
+          role: currentUser.role,
+          full_name: currentUser.full_name
+        }
+      };
 
+      const now = new Date();
+
+      // อัพเดทข้อมูล
+      const updatedMaster = await master.findByIdAndUpdate(
+        id,
+        { 
+          $set: { 
+            ...data,
+            password: hashedPassword,
+            last_password_change: {
+              date: now,
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name
+              }
+            }
+          },
+          $push: { password_history: { ...passwordHistory, changed_at: now } }
+        },
+        { new: true }
+      ).select("-password -password_history.password");
+
+      return handleSuccess(updatedMaster, "อัพเดท Master และรหัสผ่านสำเร็จ");
+    }
+
+    // กรณีไม่มีการเปลี่ยนรหัสผ่าน
+    data.updatedAt = new Date();
     const result = await master
       .findByIdAndUpdate(id, { $set: data }, { new: true })
       .select("-password");

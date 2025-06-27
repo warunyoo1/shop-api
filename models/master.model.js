@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const slugify = require("slugify");
 
+const passwordHistorySchema = new mongoose.Schema({
+  password: { type: String, required: true },
+  changed_at: { type: Date, default: Date.now },
+  changed_by: {
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: { type: String },
+    full_name: { type: String }
+  }
+});
+
 const masterSchema = new mongoose.Schema({
   masterId: { type: String },
   username: { type: String, required: true, unique: true },
@@ -12,13 +22,28 @@ const masterSchema = new mongoose.Schema({
   slug: { type: String }, // จะใช้ _id
   commission_percentage: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
+  password_history: [passwordHistorySchema],
+  last_password_change: {
+    date: { type: Date },
+    changed_by: {
+      user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      role: { type: String },
+      full_name: { type: String }
+    }
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
+
 masterSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 masterSchema.pre("save", function (next) {
