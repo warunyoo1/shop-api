@@ -53,7 +53,7 @@ exports.adminValidate = (data) => {
       "array.base": "Role must be an array",
       "array.min": "Role must contain at least 1 item",
       "array.empty": "Role cannot be empty",
-    }),
+    }).optional(),
   });
 
   return schema.validate(data, { abortEarly: false });
