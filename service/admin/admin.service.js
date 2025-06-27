@@ -1,23 +1,24 @@
 const admin = require("../../models/admin.model");
 const superadmin = require("../../models/superadmin.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
+const PasswordHistory = require("../../models/history.chang.password.model");
 const bcrypt = require("bcrypt");
 
 // create admin
 exports.createAdmin = async (username, password, phone, role) => {
   try {
     const existingAdmin = await admin.findOne({
-      username
+      username,
     });
 
     const existingSuperadmin = await superadmin.findOne({
-      username
+      username,
     });
 
     if (existingAdmin || existingSuperadmin) {
       return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
-   
+
     const newAdmin = new admin({
       username,
       password,
@@ -36,9 +37,7 @@ exports.getadmin = async ({ page = 1, perpage = 10, search }) => {
   try {
     const query = {};
     if (search) {
-      query.$or = [
-        { username: { $regex: search, $options: "i" } },
-      ];
+      query.$or = [{ username: { $regex: search, $options: "i" } }];
     }
 
     const [admins, total] = await Promise.all([
@@ -98,70 +97,116 @@ exports.updateadmin = async (id, updateData, currentUser) => {
       });
 
       if (existingAdmin || existingSuperadmin) {
-        return handleError(
-          null,
-          "Username นี้มีอยู่ในระบบแล้ว",
-          400
-        );
+        return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
       }
     }
 
-    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    const now = new Date();
+
     if (updateData.password) {
       const adminData = await admin.findById(id);
       if (!adminData) {
         return handleError(null, "ไม่พบ Admin ที่ต้องการแก้ไข", 404);
       }
 
-      // เข้ารหัสรหัสผ่านใหม่
+      const oldPassword = adminData.password; // ดึงรหัสผ่านเก่า
       const hashedPassword = await bcrypt.hash(updateData.password, 10);
-      
-      // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
-      const passwordHistory = {
-        password: hashedPassword,
-        changed_by: {
-          user_id: currentUser.user_id,
-          role: currentUser.role,
-          full_name: currentUser.full_name
-        }
-      };
 
-      const now = new Date();
+      // อัปเดต password และ history
+      await admin.findByIdAndUpdate(id, {
+        $set: {
+          ...updateData,
+          password: hashedPassword,
+        },
+        $push: {
+          last_password_change: {
+            date: now,
+            password: oldPassword,
+            changed_by: {
+              user_id: currentUser.user_id,
+              role: currentUser.role,
+              full_name: currentUser.full_name,
+            },
+          },
+        },
+      });
 
-      // อัพเดทข้อมูล
-      const updatedAdmin = await admin.findByIdAndUpdate(
-        id,
-        { 
-          $set: { 
-            ...updateData,
-            last_password_change: {
-              date: now,
+      // อัปเดต PasswordHistory
+      const passwordHistoryLatest = await PasswordHistory.findOne({
+        user_id: id,
+      }).sort({ changed_at: -1 });
+
+      if (
+        passwordHistoryLatest &&
+        passwordHistoryLatest.user_id.toString() === id.toString()
+      ) {
+        await PasswordHistory.updateOne(
+          { _id: passwordHistoryLatest._id },
+          {
+            $push: {
               changed_by: {
                 user_id: currentUser.user_id,
                 role: currentUser.role,
-                full_name: currentUser.full_name
-              }
-            }
-          },
-          $push: { password_history: { ...passwordHistory, changed_at: now } }
-        },
-        { new: true }
-      ).select("-password -password_history.password");
+                full_name: currentUser.full_name,
+                changed_at: now,
+              },
+              last_password_change: {
+                date: now,
+                password: oldPassword,
+                changed_by: {
+                  user_id: currentUser.user_id,
+                  role: currentUser.role,
+                  full_name: currentUser.full_name,
+                },
+              },
+            },
+            $set: { changed_at: now },
+          }
+        );
+      } else {
+        await PasswordHistory.create({
+          user_id: id,
+          password: hashedPassword,
+          changed_by: [
+            {
+              user_id: currentUser.user_id,
+              role: currentUser.role,
+              full_name: currentUser.full_name,
+              changed_at: now,
+            },
+          ],
+          last_password_change: [
+            {
+              date: now,
+              password: oldPassword,
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name,
+              },
+            },
+          ],
+          changed_at: now,
+        });
+      }
+
+      const updatedAdmin = await admin
+        .findById(id)
+        .select("-password -password_history.password");
 
       return handleSuccess(updatedAdmin, "อัพเดท Admin และรหัสผ่านสำเร็จ");
     }
 
-    // กรณีไม่มีการเปลี่ยนรหัสผ่าน
-    updateData.updatedAt = new Date();
-    const result = await admin
+    updateData.updatedAt = now;
+    const updatedAdmin = await admin
       .findByIdAndUpdate(id, { $set: updateData }, { new: true })
       .select("-password");
 
-    if (!result) {
+    if (!updatedAdmin) {
       return handleError(null, "ไม่พบ Admin ที่ต้องการแก้ไข", 404);
     }
 
-    return handleSuccess(result, "อัพเดท Admin สำเร็จ");
+    return handleSuccess(updatedAdmin, "อัพเดท Admin สำเร็จ");
   } catch (error) {
     return handleError(error);
   }

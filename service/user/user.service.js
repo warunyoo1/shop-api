@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Master = require("../../models/master.model");
+const PasswordHistory = require("../../models/history.chang.password.model");
 const { generateReferralCode } = require("../../utils/utils");
 const {
   handleSuccess,
@@ -133,72 +134,110 @@ exports.updateUser = async (userId, updateData, currentUser) => {
       return handleError(null, "กรุณาระบุ ID ของ User", 400);
     }
 
+    // ตรวจสอบ username ซ้ำ
     if (updateData.username) {
       const existingUser = await User.findOne({
-        $or: [{ username: updateData.username }],
+        username: updateData.username,
         _id: { $ne: userId },
       });
 
       if (existingUser) {
-        return handleError(
-          null,
-          "Username นี้มีอยู่ในระบบแล้ว",
-          400
-        );
+        return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
       }
     }
 
-    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    const now = new Date();
+
     if (updateData.password) {
       const user = await User.findById(userId);
       if (!user) {
         return handleError(null, "ไม่พบ User ที่ต้องการแก้ไข", 404);
       }
 
-      // เข้ารหัสรหัสผ่านใหม่
       const hashedPassword = await bcrypt.hash(updateData.password, 10);
-      
-      // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
-      const passwordHistory = {
-        password: hashedPassword,
-        changed_by: {
-          user_id: currentUser.user_id,
-          role: currentUser.role,
-          full_name: currentUser.full_name
-        }
-      };
 
-      const now = new Date();
+      await User.findByIdAndUpdate(userId, {
+        $set: {
+          ...updateData,
+          password: hashedPassword,
+          last_password_change: {
+            date: now,
+            changed_by: {
+              user_id: currentUser.user_id,
+              role: currentUser.role,
+              full_name: currentUser.full_name,
+            },
+          },
+        },
+      });
 
-      // อัพเดทข้อมูล
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { 
-          $set: { 
-            ...updateData, 
-            last_password_change: {
-              date: now,
+      const passwordHistoryLatest = await PasswordHistory.findOne({
+        user_id: userId,
+      }).sort({ changed_at: -1 });
+
+      if (
+        passwordHistoryLatest &&
+        passwordHistoryLatest.user_id.toString() === userId.toString()
+      ) {
+        await PasswordHistory.updateOne(
+          { _id: passwordHistoryLatest._id },
+          {
+            $push: {
               changed_by: {
                 user_id: currentUser.user_id,
                 role: currentUser.role,
-                full_name: currentUser.full_name
-              }
-            }
-          },
-          $push: { password_history: { ...passwordHistory, changed_at: now } }
-        },
-        { new: true }
-      ).select("-password -password_history.password");
+                full_name: currentUser.full_name,
+                changed_at: now,
+              },
+              last_password_change: {
+                date: now,
+                password: user.password,
+                changed_by: {
+                  user_id: currentUser.user_id,
+                  role: currentUser.role,
+                  full_name: currentUser.full_name,
+                },
+              },
+            },
+            $set: { changed_at: now },
+          }
+        );
+      } else {
+        await PasswordHistory.create({
+          user_id: userId,
+          password: hashedPassword,
+          changed_by: [
+            {
+              user_id: currentUser.user_id,
+              role: currentUser.role,
+              full_name: currentUser.full_name,
+              changed_at: now,
+            },
+          ],
+          last_password_change: [
+            {
+              date: now,
+              password: user.password,
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name,
+              },
+            },
+          ],
+          changed_at: now,
+        });
+      }
 
+      const updatedUser = await User.findById(userId).select("-password");
       return handleSuccess(updatedUser, "อัพเดท User และรหัสผ่านสำเร็จ");
     }
 
-    // กรณีไม่มีการเปลี่ยนรหัสผ่าน
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select("-password -password_history.password");
+    ).select("-password");
 
     if (!user) {
       return handleError(null, "ไม่พบ User ที่ต้องการแก้ไข", 404);

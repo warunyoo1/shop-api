@@ -1,16 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const passwordHistorySchema = new mongoose.Schema({
-  password: { type: String, required: true },
-  changed_at: { type: Date, default: Date.now },
-  changed_by: {
-    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    role: { type: String },
-    full_name: { type: String }
-  }
-});
-
 const superadminSchema = new mongoose.Schema(
   {
     username: {
@@ -27,19 +17,10 @@ const superadminSchema = new mongoose.Schema(
       required: true,
     },
     profilePicture: { type: String, default: "" },
-    role: { type: String, default:'superadmin'},
+    role: { type: String, default: "superadmin" },
     active: {
       type: Boolean,
       default: true,
-    },
-    password_history: [passwordHistorySchema],
-    last_password_change: {
-      date: { type: Date },
-      changed_by: {
-        user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        role: { type: String },
-        full_name: { type: String }
-      }
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
@@ -70,4 +51,3 @@ superadminSchema.pre("findOneAndUpdate", async function (next) {
 });
 
 module.exports = mongoose.model("superadmin", superadminSchema);
- 

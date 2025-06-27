@@ -1,6 +1,7 @@
 const master = require("../../models/master.model");
 const { generateMasterId } = require("../../utils/utils");
 const user = require("../../models/user.model");
+const PasswordHistory = require("../../models/history.chang.password.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 const bcrypt = require("bcrypt");
 
@@ -8,7 +9,7 @@ const bcrypt = require("bcrypt");
 exports.createMaster = async (data) => {
   try {
     const existingMaster = await master.findOne({
-      username: data.username
+      username: data.username,
     });
 
     if (existingMaster) {
@@ -19,7 +20,7 @@ exports.createMaster = async (data) => {
       username: data.username,
       password: data.password,
       phone: data.phone,
-      commission_percentage: data.commission_percentage
+      commission_percentage: data.commission_percentage,
     });
 
     const savedMaster = await newMaster.save();
@@ -133,11 +134,7 @@ exports.updateMaster = async (id, data, currentUser) => {
       return handleError(null, "กรุณาระบุ ID ของ Master", 400);
     }
 
-    const existingMaster = await master.findById(id);
-    if (!existingMaster) {
-      return handleError(null, "ไม่พบ Master ที่ต้องการแก้ไข", 404);
-    }
-
+    // เช็ค username ซ้ำ
     if (data.username) {
       const existingUsername = await master.findOne({
         username: data.username,
@@ -149,57 +146,111 @@ exports.updateMaster = async (id, data, currentUser) => {
       }
     }
 
-    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    const now = new Date();
+
     if (data.password) {
-      // เข้ารหัสรหัสผ่านใหม่
+      const existingMaster = await master.findById(id);
+      if (!existingMaster) {
+        return handleError(null, "ไม่พบ Master ที่ต้องการแก้ไข", 404);
+      }
+
       const hashedPassword = await bcrypt.hash(data.password, 10);
-      
-      // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
-      const passwordHistory = {
-        password: hashedPassword,
-        changed_by: {
-          user_id: currentUser.user_id,
-          role: currentUser.role,
-          full_name: currentUser.full_name
-        }
-      };
 
-      const now = new Date();
-
-      // อัพเดทข้อมูล
-      const updatedMaster = await master.findByIdAndUpdate(
-        id,
-        { 
-          $set: { 
-            ...data,
-            last_password_change: {
+      // อัพเดทรหัสผ่านและ last_password_change ใน master
+      await master.findByIdAndUpdate(id, {
+        $set: {
+          ...data,
+          password: hashedPassword,
+          last_password_change: [
+            {
               date: now,
+              password: existingMaster.password, // รหัสผ่านเก่า
               changed_by: {
                 user_id: currentUser.user_id,
                 role: currentUser.role,
-                full_name: currentUser.full_name
-              }
-            }
-          },
-          $push: { password_history: { ...passwordHistory, changed_at: now } }
+                full_name: currentUser.full_name,
+              },
+            },
+          ],
         },
-        { new: true }
-      ).select("-password -password_history.password");
+      });
 
+      // หา password history ล่าสุดของ master นี้
+      const passwordHistoryLatest = await PasswordHistory.findOne({
+        user_id: id,
+      }).sort({ changed_at: -1 });
+
+      if (
+        passwordHistoryLatest &&
+        passwordHistoryLatest.user_id.toString() === id.toString()
+      ) {
+        // อัพเดท array changed_by และ last_password_change
+        await PasswordHistory.updateOne(
+          { _id: passwordHistoryLatest._id },
+          {
+            $push: {
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name,
+                changed_at: now,
+              },
+              last_password_change: {
+                date: now,
+                password: existingMaster.password,
+                changed_by: {
+                  user_id: currentUser.user_id,
+                  role: currentUser.role,
+                  full_name: currentUser.full_name,
+                },
+              },
+            },
+            $set: { changed_at: now },
+          }
+        );
+      } else {
+        // สร้าง PasswordHistory ใหม่
+        await PasswordHistory.create({
+          user_id: id,
+          password: hashedPassword,
+          changed_by: [
+            {
+              user_id: currentUser.user_id,
+              role: currentUser.role,
+              full_name: currentUser.full_name,
+              changed_at: now,
+            },
+          ],
+          last_password_change: [
+            {
+              date: now,
+              password: existingMaster.password,
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name,
+              },
+            },
+          ],
+          changed_at: now,
+        });
+      }
+
+      // ดึงข้อมูล master ที่อัพเดทแล้ว (ไม่แสดงรหัสผ่าน)
+      const updatedMaster = await master.findById(id).select("-password");
       return handleSuccess(updatedMaster, "อัพเดท Master และรหัสผ่านสำเร็จ");
     }
 
-    // กรณีไม่มีการเปลี่ยนรหัสผ่าน
-    data.updatedAt = new Date();
-    const result = await master
+    // กรณีไม่เปลี่ยนรหัสผ่าน
+    const updatedMaster = await master
       .findByIdAndUpdate(id, { $set: data }, { new: true })
       .select("-password");
 
-    if (!result) {
+    if (!updatedMaster) {
       return handleError(null, "ไม่พบ Master ที่ต้องการแก้ไข", 404);
     }
 
-    return handleSuccess(result, "อัพเดท Master สำเร็จ");
+    return handleSuccess(updatedMaster, "อัพเดท Master สำเร็จ");
   } catch (error) {
     return handleError(error);
   }
