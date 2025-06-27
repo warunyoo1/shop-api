@@ -27,23 +27,11 @@ const adminSchema = new mongoose.Schema(
       required: true,
     },
     profilePicture: { type: String, default: "" },
-    role: {
-      type: String,
-      default: "admin",
-    },
+    role: { type: Array, default: []},
     active: {
       type: Boolean,
       default: true,
     },
-    premission: [
-      {
-        managersuperadmin: { type: String, default: "0" },
-        manageradmin: { type: String, default: "0" },
-        managermaster: { type: String, default: "0" },
-        lotterytype: { type: String, default: "0" },
-        manageruser: { type: String, default: "0" },
-      },
-    ],
     password_history: [passwordHistorySchema],
     last_password_change: {
       date: { type: Date },
