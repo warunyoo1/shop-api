@@ -20,7 +20,7 @@ exports.loginUser = async (username, password, ip, userAgent) => {
 
   if (!user.active) return handleAuthError(null, "User is not active", 400);
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return handleAuthError(null, "Invalid credentials", 400);
+  if (!isMatch) return handleAuthError(null, "username หรือ password ไม่ถูกต้อง", 400);
 
   const checkResult = await exports.checkExistingRefreshToken(user._id);
   if (!checkResult.success) {
