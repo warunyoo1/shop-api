@@ -155,8 +155,16 @@ exports.completeWithdrawal = async function ({
 };
 
 // ดึงข้อมูลตาม id
-exports.getWithdrawalById = async function (id) {
-  return await Withdrawal.findById(id).populate('user_id', 'username email');
+exports.getWithdrawalById = async (id) => {
+  try {
+    if (!id) {
+      return handleError(null, "กรุณาระบุ ID ของรายการถอนเงิน", 400);
+    }
+
+    return await Withdrawal.findById(id).populate('user_id', 'username');
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
 // ดึงข้อมูลทั้งหมด
@@ -169,7 +177,7 @@ exports.getAllWithdrawals = async function ({ page = 1, limit = 10, status } = {
   }
 
   const withdrawals = await Withdrawal.find(query)
-    .populate('user_id', 'username email')
+    .populate('user_id', 'username')
     .populate('approvedBy', 'username')
     .sort({ created_at: -1 })
     .skip(skip)
@@ -303,5 +311,35 @@ exports.deleteWithdrawal = async function ({
     return { message: "ลบข้อมูลการถอนเงินสำเร็จ" };
   } catch (error) {
     throw error;
+  }
+};
+
+exports.getWithdrawals = async ({ page = 1, perPage = 10, search }) => {
+  try {
+    const query = {};
+    if (search) {
+      query.$or = [
+        { 'user_id.username': { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const withdrawals = await Withdrawal.find(query)
+      .populate('user_id', 'username')
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .sort({ createdAt: -1 });
+
+    const total = await Withdrawal.countDocuments(query);
+
+    const pagination = {
+      currentPage: page,
+      perPage,
+      totalItems: total,
+      totalPages: Math.ceil(total / perPage),
+    };
+
+    return handleSuccess(withdrawals, "ดึงข้อมูลรายการถอนเงินสำเร็จ", 200, pagination);
+  } catch (error) {
+    return handleError(error);
   }
 }; 

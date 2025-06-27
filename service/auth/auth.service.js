@@ -11,6 +11,7 @@ const {
   handleAuthSuccess,
   handleAuthError,
   handleSuccess,
+  handleError,
 } = require("../../utils/responseHandler");
 
 exports.loginUser = async (username, password, ip, userAgent) => {
@@ -36,10 +37,8 @@ exports.loginUser = async (username, password, ip, userAgent) => {
     {
       _id: user._id,
       username: user.username,
-      email: user.email,
       phone: user.phone,
       role: user.role,
-      address: user.address,
     },
     process.env.JWT_SECRET,
     {
@@ -51,10 +50,8 @@ exports.loginUser = async (username, password, ip, userAgent) => {
     {
       _id: user._id,
       username: user.username,
-      email: user.email,
       phone: user.phone,
       role: user.role,
-      address: user.address,
     },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: process.env.JWT_REFRESH_EXPIRATION }
@@ -87,9 +84,7 @@ exports.handleRefreshToken = async (refreshToken) => {
     {
       _id: payload._id,
       username: payload.username,
-      email: payload.email,
       phone: payload.phone,
-      address: payload.address,
       role: payload.role,
     },
     process.env.JWT_SECRET,

@@ -30,11 +30,11 @@ exports.createAdmin = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
+    console.log(body);
     const result = await adminService.createAdmin(
       body.username,
       body.password,
       body.phone,
-      body.address,
       body.role
     );
 

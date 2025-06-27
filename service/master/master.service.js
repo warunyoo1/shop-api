@@ -4,44 +4,36 @@ const user = require("../../models/user.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // เพิ่ม master
-exports.createMaster = async (
-  username,
-  password,
-  phone,
-  commission_percentage
-) => {
+exports.createMaster = async (data) => {
   try {
     const existingMaster = await master.findOne({
-      $or: [{ username }],
+      username: data.username
     });
 
     if (existingMaster) {
-      return handleError(null, "Username  นี้มีอยู่ในระบบแล้ว", 400);
+      return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
 
     const newMaster = new master({
-      username,
-      password,
-      phone,
-      commission_percentage,
+      username: data.username,
+      password: data.password,
+      phone: data.phone,
+      commission_percentage: data.commission_percentage
     });
 
     const savedMaster = await newMaster.save();
-    if (!savedMaster) {
-      return handleError(null, "ไม่สามารถสร้าง Master ได้", 500);
-    }
-    return handleSuccess(
-      {
-        id: savedMaster._id,
-        username: savedMaster.username,
-        email: savedMaster.email,
-        slug: savedMaster.slug,
-        share_url_master: savedMaster.share_url_master,
-        master_id: savedMaster.username,
-      },
-      "สร้าง Master สำเร็จ",
-      201
-    );
+
+    const response = {
+      id: savedMaster._id,
+      username: savedMaster.username,
+      phone: savedMaster.phone,
+      commission_percentage: savedMaster.commission_percentage,
+      active: savedMaster.active,
+      createdAt: savedMaster.createdAt,
+      updatedAt: savedMaster.updatedAt,
+    };
+
+    return handleSuccess(response, "สร้าง Master สำเร็จ", 201);
   } catch (error) {
     return handleError(error);
   }
@@ -69,7 +61,6 @@ exports.getBySlug = async (slug) => {
       {
         id: master._id,
         username: master.username,
-        email: master.email,
         slug: master.slug,
         profileUrl: master.profileUrl,
       },
@@ -89,7 +80,7 @@ exports.getAllMasters = async ({ page = 1, perPage = 10, search }) => {
     if (search) {
       query.$or = [
         { username: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -157,16 +148,7 @@ exports.updateMaster = async (id, data) => {
       }
     }
 
-    if (data.email) {
-      const existingEmail = await master.findOne({
-        email: data.email,
-        _id: { $ne: id },
-      });
-
-      if (existingEmail) {
-        return handleError(null, "Email นี้มีอยู่ในระบบแล้ว", 400);
-      }
-    }
+    data.updatedAt = new Date();
 
     const result = await master
       .findByIdAndUpdate(id, { $set: data }, { new: true })

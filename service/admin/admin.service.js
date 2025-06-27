@@ -16,6 +16,7 @@ exports.createAdmin = async (username, password, phone, role) => {
     if (existingAdmin || existingSuperadmin) {
       return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
+   
     const newAdmin = new admin({
       username,
       password,

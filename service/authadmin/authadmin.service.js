@@ -17,10 +17,10 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
 
   // ค้นหาผู้ใช้
   const superadminUser = await superadmin.findOne({
-    $or: [{ username }, { email: username }],
+    username
   });
   const adminUser = await admin.findOne({
-    $or: [{ username }, { email: username }],
+    username
   });
 
   // ตรวจสอบและยืนยันตัวตนผู้ใช้
@@ -63,7 +63,6 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
       {
         _id: superadminUser._id,
         username: superadminUser.username,
-        email: superadminUser.email,
         phone: superadminUser.phone,
         role: 'superadmin'
       },
@@ -75,7 +74,6 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
       {
         _id: superadminUser._id,
         username: superadminUser.username,
-        email: superadminUser.email,
         phone: superadminUser.phone,
         role: 'superadmin'
       },
@@ -87,7 +85,6 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
       {
         _id: adminUser._id,
         username: adminUser.username,
-        email: adminUser.email,
         phone: adminUser.phone,
         role: 'admin',
         premission: adminUser.role
@@ -100,7 +97,6 @@ exports.loginadmin = async (username, password, ip, userAgent) => {
       {
         _id: adminUser._id,
         username: adminUser.username,
-        email: adminUser.email,
         phone: adminUser.phone,
         role: 'admin',
         premission: adminUser.role
@@ -144,9 +140,7 @@ exports.handleRefreshToken = async (refreshToken) => {
       {
         _id: payload._id,
         username: payload.username,
-        email: payload.email,
         phone: payload.phone,
-        address: payload.address,
         role: payload.role,
         // ถ้าrole เป็น admin ก็ต้องมี premission
         premission: payload.role === 'admin' ? payload.premission : null
@@ -213,7 +207,7 @@ exports.loginMaster = async (username, password, ip, userAgent) => {
 
   // ค้นหาผู้ใช้
   const masterUser = await master.findOne({
-    $or: [{ username }, { email: username }],
+    username
   });
 
   if(masterUser){
@@ -237,7 +231,6 @@ exports.loginMaster = async (username, password, ip, userAgent) => {
       {
         _id: masterUser._id,
         username: masterUser.username,
-        email: masterUser.email,
         phone: masterUser.phone,
         role: 'master',
         commission_percentage: masterUser.commission_percentage
@@ -250,7 +243,6 @@ exports.loginMaster = async (username, password, ip, userAgent) => {
       {
         _id: masterUser._id,
         username: masterUser.username,
-        email: masterUser.email,
         phone: masterUser.phone,
         role: 'master',
         commission_percentage: masterUser.commission_percentage

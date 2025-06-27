@@ -58,7 +58,6 @@ exports.getBySlug = async (slug) => {
       {
         id: master._id,
         username: master.username,
-        email: master.email,
         slug: master.slug,
         profileUrl: master.profileUrl,
       },
@@ -92,7 +91,26 @@ exports.getMasterById = async (req, res) => {
     }
 
     const result = await masterService.getMasterById(id);
-    return res.status(result.status).json(result);
+    if (!result.success) {
+      return res.status(result.status).json(result);
+    }
+
+    const master = result.data;
+    const response = {
+      id: master._id,
+      username: master.username,
+      phone: master.phone,
+      commission_percentage: master.commission_percentage,
+      active: master.active,
+      createdAt: master.createdAt,
+      updatedAt: master.updatedAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: response,
+      message: "ดึงข้อมูล Master สำเร็จ",
+    });
   } catch (error) {
     const response = await handleError(error);
     return res.status(response.status).json(response);

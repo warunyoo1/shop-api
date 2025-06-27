@@ -79,7 +79,6 @@ exports.getuser = async ({ page = 1, perPage = 10, search }) => {
     if (search) {
       query.$or = [
         { username: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
       ];
     }
@@ -133,16 +132,16 @@ exports.updateUser = async (userId, updateData) => {
       return handleError(null, "กรุณาระบุ ID ของ User", 400);
     }
 
-    if (updateData.username || updateData.email) {
+    if (updateData.username) {
       const existingUser = await User.findOne({
-        $or: [{ username: updateData.username }, { email: updateData.email }],
+        $or: [{ username: updateData.username }],
         _id: { $ne: userId },
       });
 
       if (existingUser) {
         return handleError(
           null,
-          "Username หรือ Email นี้มีอยู่ในระบบแล้ว",
+          "Username นี้มีอยู่ในระบบแล้ว",
           400
         );
       }

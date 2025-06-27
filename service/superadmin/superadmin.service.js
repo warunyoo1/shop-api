@@ -36,7 +36,6 @@ exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
         if (search) {
             query.$or = [
                 { username: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } },
                 { phone: { $regex: search, $options: 'i' } }
             ];
         }
