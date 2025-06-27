@@ -2,26 +2,24 @@ const superadmin = require("../../models/superadmin.model");
 const admin = require("../../models/admin.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
-exports.createSuperadmin = async ({ username, email, password, phone, address}) => {
+exports.createSuperadmin = async ({ username, password, phone }) => {
     try {
         const existingSuperadmin = await superadmin.findOne({
-            $or: [{ username }, { email }]
+            username
         });
 
         const existingAdmin = await admin.findOne({
-            $or: [{ username }, { email }]
+            username
         });
 
         if (existingSuperadmin || existingAdmin) {
-            return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+            return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
         }
 
         const newSuperadmin = new superadmin({
             username,
-            email,
             password,
-            phone,
-            address
+            phone
         });
 
         const savedSuperadmin = await newSuperadmin.save();
@@ -85,24 +83,18 @@ exports.updateSuperadmin = async (id, updateData) => {
             return handleError(null, "กรุณาระบุ ID ของ superadmin", 400);
         } 
 
-        if (updateData.username || updateData.email) {
+        if (updateData.username) {
             const existingSuperadmin = await superadmin.findOne({
-                $or: [
-                    { username: updateData.username },
-                    { email: updateData.email }
-                ],
+                username: updateData.username,
                 _id: { $ne: id }
             });
 
             const existingAdmin = await admin.findOne({
-                $or: [
-                    { username: updateData.username },
-                    { email: updateData.email }
-                ]
+                username: updateData.username
             });
 
             if (existingSuperadmin || existingAdmin) {
-                return handleError(null, "Username หรือ Email นี้มีอยู่ในระบบแล้ว", 400);
+                return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
             }
         }
 

@@ -3,24 +3,23 @@ const superadmin = require("../../models/superadmin.model");
 const { handleSuccess, handleError } = require("../../utils/responseHandler");
 
 // create admin
-exports.createAdmin = async (username, password, phone, address, role) => {
+exports.createAdmin = async (username, password, phone, role) => {
   try {
     const existingAdmin = await admin.findOne({
-      $or: [{ username }],
+      username
     });
 
     const existingSuperadmin = await superadmin.findOne({
-      $or: [{ username }],
+      username
     });
 
     if (existingAdmin || existingSuperadmin) {
-      return handleError(null, "Username  นี้มีอยู่ในระบบแล้ว", 400);
+      return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
     const newAdmin = new admin({
       username,
       password,
       phone,
-      address,
       role,
     });
     const savedAdmin = await newAdmin.save();
@@ -37,7 +36,6 @@ exports.getadmin = async ({ page = 1, perPage = 10, search }) => {
     if (search) {
       query.$or = [
         { username: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -87,20 +85,20 @@ exports.updateadmin = async (id, updateData) => {
       return handleError(null, "กรุณาระบุ ID ของ admin", 400);
     }
 
-    if (updateData.username || updateData.email) {
+    if (updateData.username) {
       const existingAdmin = await admin.findOne({
-        $or: [{ username: updateData.username }, { email: updateData.email }],
+        username: updateData.username,
         _id: { $ne: id },
       });
 
       const existingSuperadmin = await superadmin.findOne({
-        $or: [{ username: updateData.username }, { email: updateData.email }],
+        username: updateData.username,
       });
 
       if (existingAdmin || existingSuperadmin) {
         return handleError(
           null,
-          "Username หรือ Email นี้มีอยู่ในระบบแล้ว",
+          "Username นี้มีอยู่ในระบบแล้ว",
           400
         );
       }
