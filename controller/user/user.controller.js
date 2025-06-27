@@ -78,7 +78,7 @@ exports.register = async (req, res) => {
         user: {
           id: result.data._id,
           username: result.data.username,
-          email: result.data.email,
+
         },
         ip,
         referrer,
@@ -147,7 +147,12 @@ exports.updateUser = async (req, res) => {
       return res.status(response.status).json(response);
     }
 
-    const result = await userService.updateUser(id, req.body);
+    const result = await userService.updateUser(id, req.body, {
+      user_id: req.user._id,
+      role: req.user.role,
+      full_name: req.user.username
+    });
+    
     return res.status(result.status).json(result);
   } catch (error) {
     const response = await handleError(error);

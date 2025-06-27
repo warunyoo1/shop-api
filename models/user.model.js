@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const slugify = require("slugify");
 
+const passwordHistorySchema = new mongoose.Schema({
+  password: { type: String, required: true },
+  changed_by: {
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    role: { type: String, required: true },
+    full_name: { type: String, required: true }
+  },
+  changed_at: { type: Date, default: Date.now }
+});
+
 const userSchema = new mongoose.Schema({
   full_name: { type: String, default: "" },
   username: { type: String },
@@ -25,6 +35,15 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Master",
     default: null,
+  },
+  password_history: [passwordHistorySchema],
+  last_password_change: {
+    date: { type: Date },
+    changed_by: {
+      user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      role: { type: String },
+      full_name: { type: String }
+    }
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

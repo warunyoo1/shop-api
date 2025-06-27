@@ -69,7 +69,6 @@ exports.login = async (req, res) => {
         user: {
           id: result.user._id,
           username: result.user.username,
-          email: result.user.email,
         },
         referrer,
         ip,

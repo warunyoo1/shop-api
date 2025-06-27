@@ -7,6 +7,7 @@ const {
   handleError,
   formatCreateUserResponse,
 } = require("../../utils/responseHandler");
+const bcrypt = require("bcrypt");
 
 exports.registerUser = async ({
   full_name,
@@ -126,7 +127,7 @@ exports.getUserById = async (userId) => {
 };
 
 // update user
-exports.updateUser = async (userId, updateData) => {
+exports.updateUser = async (userId, updateData, currentUser) => {
   try {
     if (!userId) {
       return handleError(null, "กรุณาระบุ ID ของ User", 400);
@@ -147,11 +148,58 @@ exports.updateUser = async (userId, updateData) => {
       }
     }
 
+    // ถ้ามีการเปลี่ยนรหัสผ่าน
+    if (updateData.password) {
+      const user = await User.findById(userId);
+      if (!user) {
+        return handleError(null, "ไม่พบ User ที่ต้องการแก้ไข", 404);
+      }
+
+      // เข้ารหัสรหัสผ่านใหม่
+      const hashedPassword = await bcrypt.hash(updateData.password, 10);
+      
+      // เพิ่มประวัติการเปลี่ยนรหัสผ่าน
+      const passwordHistory = {
+        password: hashedPassword,
+        changed_by: {
+          user_id: currentUser.user_id,
+          role: currentUser.role,
+          full_name: currentUser.full_name
+        }
+      };
+
+      const now = new Date();
+
+      // อัพเดทข้อมูล
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { 
+          $set: { 
+            ...updateData, 
+            password: hashedPassword,
+            last_password_change: {
+              date: now,
+              changed_by: {
+                user_id: currentUser.user_id,
+                role: currentUser.role,
+                full_name: currentUser.full_name
+              }
+            }
+          },
+          $push: { password_history: { ...passwordHistory, changed_at: now } }
+        },
+        { new: true }
+      ).select("-password -password_history.password");
+
+      return handleSuccess(updatedUser, "อัพเดท User และรหัสผ่านสำเร็จ");
+    }
+
+    // กรณีไม่มีการเปลี่ยนรหัสผ่าน
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
       { new: true }
-    ).select("-password");
+    ).select("-password -password_history.password");
 
     if (!user) {
       return handleError(null, "ไม่พบ User ที่ต้องการแก้ไข", 404);
