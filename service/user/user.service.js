@@ -74,7 +74,7 @@ exports.registerUser = async ({
 };
 
 // get all user
-exports.getuser = async ({ page = 1, perPage = 10, search }) => {
+exports.getuser = async ({ page = 1, perpage = 10, search }) => {
   try {
     const query = {};
     if (search) {
@@ -84,22 +84,22 @@ exports.getuser = async ({ page = 1, perPage = 10, search }) => {
       ];
     }
 
-    const skip = (page - 1) * perPage;
+    const skip = (page - 1) * perpage;
 
     const [users, total] = await Promise.all([
       User.find(query)
         .select("-password")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(perPage),
+        .limit(perpage),
       User.countDocuments(query),
     ]);
 
     const pagination = {
       currentPage: parseInt(page),
-      perPage: parseInt(perPage),
+      perPage: parseInt(perpage),
       totalItems: total,
-      totalPages: Math.ceil(total / perPage),
+      totalPages: Math.ceil(total / perpage),
     };
 
     return handleSuccess(users, "ดึงข้อมูล User สำเร็จ", 200, pagination);

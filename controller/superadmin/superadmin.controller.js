@@ -72,12 +72,13 @@ exports.getSuperadmin = async (req, res) => {
             const response = await handleError(null, "Page and perpage are required", 400);
             return res.status(response.status).json(response);
         }
-        
+       
         const result = await superadminService.getSuperadmin({
             page: parseInt(page) || 1,
             perpage: parseInt(perpage) || 10,
             search
         });
+        
 
         return res.status(result.status).json(result);
     } catch(err) {

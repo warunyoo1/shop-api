@@ -32,7 +32,7 @@ exports.createAdmin = async (username, password, phone, role) => {
 };
 
 // get admin
-exports.getadmin = async ({ page = 1, perPage = 10, search }) => {
+exports.getadmin = async ({ page = 1, perpage = 10, search }) => {
   try {
     const query = {};
     if (search) {
@@ -45,17 +45,17 @@ exports.getadmin = async ({ page = 1, perPage = 10, search }) => {
       admin
         .find(query)
         .select("-password")
-        .skip((page - 1) * perPage)
-        .limit(perPage)
+        .skip((page - 1) * perpage)
+        .limit(perpage)
         .sort({ createdAt: -1 }),
       admin.countDocuments(query),
     ]);
 
     const pagination = {
       currentPage: page,
-      perPage: perPage,
+      perPage: perpage,
       totalItems: total,
-      totalPages: Math.ceil(total / perPage),
+      totalPages: Math.ceil(total / perpage),
     };
 
     return handleSuccess(admins, "ดึงข้อมูล Admin สำเร็จ", 200, pagination);

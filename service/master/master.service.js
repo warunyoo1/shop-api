@@ -74,7 +74,7 @@ exports.getBySlug = async (slug) => {
 };
 
 // ดึงข้อมูล master
-exports.getAllMasters = async ({ page = 1, perPage = 10, search }) => {
+exports.getAllMasters = async ({ page = 1, perpage = 10, search }) => {
   try {
     const query = {};
 
@@ -85,13 +85,13 @@ exports.getAllMasters = async ({ page = 1, perPage = 10, search }) => {
       ];
     }
 
-    const skip = (page - 1) * perPage;
+    const skip = (page - 1) * perpage;
 
     const [masters, total] = await Promise.all([
       master
         .find(query)
         .skip(skip)
-        .limit(perPage)
+        .limit(perpage)
         .sort({ createdAt: -1 })
         .select("-password"),
       master.countDocuments(query),
@@ -99,9 +99,9 @@ exports.getAllMasters = async ({ page = 1, perPage = 10, search }) => {
 
     const pagination = {
       currentPage: parseInt(page),
-      perPage: parseInt(perPage),
+      perPage: parseInt(perpage),
       totalItems: total,
-      totalPages: Math.ceil(total / perPage),
+      totalPages: Math.ceil(total / perpage),
     };
 
     return handleSuccess(masters, "ดึงข้อมูล Master สำเร็จ", 200, pagination);

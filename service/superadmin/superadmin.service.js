@@ -30,10 +30,9 @@ exports.createSuperadmin = async ({ username, password, phone }) => {
     }
 };
 
-exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
+exports.getSuperadmin = async ({ page = 1,perpage = 10, search }) => {
     try {
         const query = {};
-        
         if (search) {
             query.$or = [
                 { username: { $regex: search, $options: 'i' } },
@@ -41,22 +40,22 @@ exports.getSuperadmin = async ({ page = 1, perPage = 10, search }) => {
             ];
         }
 
-        const skip = (page - 1) * perPage;
+        const skip = (page - 1) * perpage;
 
         const [superadmins, total] = await Promise.all([
             superadmin.find(query)
                 .select('-password')
                 .skip(skip)
-                .limit(perPage)
+                .limit(perpage)
                 .sort({ createdAt: -1 }),
             superadmin.countDocuments(query)
         ]);
 
         const pagination = {
             currentPage: page,
-            perPage: perPage,
+            perPage: perpage,
             totalItems: total,
-            totalPages: Math.ceil(total / perPage)
+            totalPages: Math.ceil(total / perpage)
         };
      
         return handleSuccess(superadmins, "ดึงข้อมูล Superadmin สำเร็จ", 200, pagination);
