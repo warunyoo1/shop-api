@@ -134,7 +134,6 @@ exports.updateadmin = async (id, updateData, currentUser) => {
         { 
           $set: { 
             ...updateData,
-            password: hashedPassword,
             last_password_change: {
               date: now,
               changed_by: {

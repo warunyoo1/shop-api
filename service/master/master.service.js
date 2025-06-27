@@ -172,7 +172,6 @@ exports.updateMaster = async (id, data, currentUser) => {
         { 
           $set: { 
             ...data,
-            password: hashedPassword,
             last_password_change: {
               date: now,
               changed_by: {

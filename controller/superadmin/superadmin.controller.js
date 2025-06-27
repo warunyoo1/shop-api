@@ -156,11 +156,11 @@ exports.updateSuperadmin = async (req, res) => {
             const response = await handleError(error, error.details[0].message || "Validation superadmin failed", 400);
             return res.status(response.status).json(response);
         }
-
+        console.log(body.password);
         const result = await superadminService.updateSuperadmin(id, body, {
-            user_id: req.user._id,
-            role: req.user.role,
-            full_name: req.user.username
+            user_id: "685d4a5a6ecdf0cf124a02e0",
+            role: "superadmin",
+            full_name: "Super Admin"
         });
         return res.status(result.status).json(result);
     }catch(err){
