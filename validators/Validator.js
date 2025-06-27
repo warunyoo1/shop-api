@@ -45,20 +45,15 @@ exports.superadminValidate = (data) => {
 // vaild admin
 exports.adminValidate = (data) => {
   const schema = Joi.object({
-    id: Joi.string().allow(null).optional(),
+    id: Joi.string().allow(null).optional().optional(),
     username: Joi.string().min(5).required(),
     password: Joi.string().allow(null).optional(),
     phone: Joi.string().min(10).max(15).required(),
-    role: Joi.string().valid('admin').optional().default('admin'),
-    premission: Joi.array().items(
-      Joi.object({
-        managersuperadmin: Joi.string().valid('0', '1').optional().default('0'),
-        manageradmin: Joi.string().valid('0', '1').optional().default('0'),
-        managermaster: Joi.string().valid('0', '1').optional().default('0'),
-        lotterytype: Joi.string().valid('0', '1').optional().default('0'),
-        manageruser: Joi.string().valid('0', '1').optional().default('0')
-      })
-    ).optional()
+    role: Joi.array().required().min(1).messages({
+      "array.base": "Role must be an array",
+      "array.min": "Role must contain at least 1 item",
+      "array.empty": "Role cannot be empty",
+    }),
   });
 
   return schema.validate(data, { abortEarly: false });
