@@ -4,7 +4,7 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 const bcrypt = require("bcrypt");
 
 // create admin
-exports.createAdmin = async (username, password, phone, role) => {
+exports.createAdmin = async (username, password, phone, role, premission) => {
   try {
     const existingAdmin = await admin.findOne({
       username
@@ -23,6 +23,13 @@ exports.createAdmin = async (username, password, phone, role) => {
       password,
       phone,
       role,
+      premission: premission || [{
+        managersuperadmin: "0",
+        manageradmin: "0", 
+        managermaster: "0",
+        lotterytype: "0",
+        manageruser: "0"
+      }]
     });
     const savedAdmin = await newAdmin.save();
     return handleSuccess(savedAdmin, "สร้าง Admin สำเร็จ", 201);

@@ -35,7 +35,8 @@ exports.createAdmin = async (req, res) => {
       body.username,
       body.password,
       body.phone,
-      body.role
+      body.role,
+      body.premission
     );
 
     if (!result.success) {

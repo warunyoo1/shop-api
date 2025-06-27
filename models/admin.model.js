@@ -41,6 +41,7 @@ const adminSchema = new mongoose.Schema(
         manageradmin: { type: String, default: "0" },
         managermaster: { type: String, default: "0" },
         lotterytype: { type: String, default: "0" },
+        manageruser: { type: String, default: "0" },
       },
     ],
     password_history: [passwordHistorySchema],
