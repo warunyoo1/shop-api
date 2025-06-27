@@ -20,7 +20,7 @@ router.get(
 );
 router.put(
   "/update/:id",
-  
+  authmiddleware.permissionmanagersuperadmin,
   superadminController.updateSuperadmin
 );
 router.delete(
