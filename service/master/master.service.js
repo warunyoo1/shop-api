@@ -14,7 +14,6 @@ exports.createMaster = async ( username,
 ) => {
 
   try {
-    const { username, password, phone, commission_percentage } = data;
 
     const existingMaster = await master.findOne({
       username: username,
