@@ -6,10 +6,14 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 const bcrypt = require("bcrypt");
 
 // เพิ่ม master
-exports.createMaster = async (data) => {
+exports.createMaster = async ( username,
+  password,
+  phone,
+  commission_percentage
+) => {
   try {
     const existingMaster = await master.findOne({
-      username: data.username,
+      username: username,
     });
 
     if (existingMaster) {
@@ -17,10 +21,10 @@ exports.createMaster = async (data) => {
     }
 
     const newMaster = new master({
-      username: data.username,
-      password: data.password,
-      phone: data.phone,
-      commission_percentage: data.commission_percentage,
+      username: username,
+      password: password,
+      phone: phone,
+      commission_percentage: commission_percentage,
     });
 
     const savedMaster = await newMaster.save();
