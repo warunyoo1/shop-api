@@ -7,27 +7,19 @@ const bcrypt = require("bcrypt");
 
 // เพิ่ม master
 
-exports.createMaster = async ( username,
-  password,
-  phone,
-  commission_percentage
-) => {
-
+exports.createMaster = async ({ username, password, phone, commission_percentage }) => {
   try {
-
-    const existingMaster = await master.findOne({
-      username: username,
-    });
+    const existingMaster = await master.findOne({ username });
 
     if (existingMaster) {
       return handleError(null, "Username นี้มีอยู่ในระบบแล้ว", 400);
     }
 
     const newMaster = new master({
-      username: username,
-      password: password,
-      phone: phone,
-      commission_percentage: commission_percentage,
+      username,
+      password,
+      phone,
+      commission_percentage,
     });
 
     const savedMaster = await newMaster.save();
@@ -47,6 +39,7 @@ exports.createMaster = async ( username,
     return handleError(error);
   }
 };
+
 
 exports.redirectById = async (id) => {
   try {
