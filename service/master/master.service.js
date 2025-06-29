@@ -9,6 +9,8 @@ const bcrypt = require("bcrypt");
 exports.createMaster = async (data) => {
   console.log(data);
   try {
+    const { username, password, phone, commission_percentage } = data;
+
     const existingMaster = await master.findOne({
       username: data.username,
     });
