@@ -14,12 +14,13 @@ exports.createMaster = async (req, res) => {
     }
 
     const { username, password, phone, commission_percentage } = req.body;
-    const result = await masterService.createMaster(
+    console.log(req.body);
+    const result = await masterService.createMaster({
       username,
       password,
       phone,
-      commission_percentage
-    );
+      commission_percentage,
+    });
 
     if (!result.success) {
       return res.status(result.status).json(result);
@@ -131,7 +132,7 @@ exports.updateMaster = async (req, res) => {
     const result = await masterService.updateMaster(id, req.body, {
       user_id: req.user._id,
       role: req.user.role,
-      full_name: req.user.username
+      full_name: req.user.username,
     });
     return res.status(result.status).json(result);
   } catch (error) {

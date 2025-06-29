@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 
 // เพิ่ม master
 exports.createMaster = async (data) => {
+  console.log(data);
   try {
     const existingMaster = await master.findOne({
       username: data.username,
