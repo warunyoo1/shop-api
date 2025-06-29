@@ -6,11 +6,13 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 const bcrypt = require("bcrypt");
 
 // เพิ่ม master
+
 exports.createMaster = async ( username,
   password,
   phone,
   commission_percentage
 ) => {
+
   try {
     const existingMaster = await master.findOne({
       username: username,
