@@ -78,7 +78,6 @@ exports.register = async (req, res) => {
         user: {
           id: result.data._id,
           username: result.data.username,
-
         },
         ip,
         referrer,
@@ -150,9 +149,9 @@ exports.updateUser = async (req, res) => {
     const result = await userService.updateUser(id, req.body, {
       user_id: req.user._id,
       role: req.user.role,
-      full_name: req.user.username
+      full_name: req.user.username,
     });
-    
+
     return res.status(result.status).json(result);
   } catch (error) {
     const response = await handleError(error);
@@ -208,5 +207,17 @@ exports.deactiveUser = async (req, res) => {
   } catch (error) {
     const response = await handleError(error);
     return res.status(response.status).json(response);
+  }
+};
+
+exports.getPasswordHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const history = await userService.getPasswordHistoryByUserId(id);
+    return res.status(200).json({ history });
+  } catch (error) {
+    const status = error.status || 500;
+    const message = error.message || "เกิดข้อผิดพลาด";
+    return res.status(status).json({ message });
   }
 };

@@ -312,3 +312,21 @@ exports.deactiveUser = async (userId) => {
     return handleError(error);
   }
 };
+
+exports.getPasswordHistoryByUserId = async (id) => {
+  if (!id) {
+    throw { status: 400, message: "กรุณาระบุ id" };
+  }
+
+  const history = await PasswordHistory.findOne({ user_id: id })
+    .select("-password")
+    .lean();
+
+  if (!history) {
+    throw { status: 404, message: "ไม่พบประวัติการเปลี่ยนรหัสผ่าน" };
+  }
+
+  return history;
+};
+
+
