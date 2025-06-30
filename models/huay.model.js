@@ -8,7 +8,7 @@ const huaySchema = new mongoose.Schema({
   },
   huay_name: { type: String, default: "" },
   huay_number: { type: Array, default: [] },
-  reward: { type: String, default: "" },
+  reward: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
