@@ -24,6 +24,10 @@ exports.registerUser = async ({
     if (existingPhone) {
       return handleError(null, "เบอร์โทรนี้มีอยุ่ในระบบเเล้ว", 400);
     }
+    const existingBank = await User.findOne({ bank_number });
+    if (existingBank) {
+      return handleError(null, "เลขบัญชีนี้มีอยู่ในระบบแล้ว", 400);
+    }
 
     if (master_id) {
       const isValid = mongoose.Types.ObjectId.isValid(master_id);
@@ -328,5 +332,3 @@ exports.getPasswordHistoryByUserId = async (id) => {
 
   return history;
 };
-
-
