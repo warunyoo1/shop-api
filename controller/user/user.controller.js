@@ -221,3 +221,33 @@ exports.getPasswordHistory = async (req, res) => {
     return res.status(status).json({ message });
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      const errorResponse = await handleError(
+        null,
+        "กรุณาระบุเบอร์โทรศัพท์",
+        400
+      );
+      return res.status(errorResponse.status).json(errorResponse);
+    }
+
+    const request = await authService.requestForgotPassword(phone);
+
+    const successResponse = await handleSuccess(
+      { request_id: request._id },
+      "บันทึกคำขอลืมรหัสผ่านเรียบร้อยแล้ว",
+      201
+    );
+    return res.status(successResponse.status).json(successResponse);
+  } catch (error) {
+    const status = error.status || 500;
+    const message = error.message || "เกิดข้อผิดพลาด";
+
+    const errorResponse = await handleError(error, message, status);
+    return res.status(errorResponse.status).json(errorResponse);
+  }
+};

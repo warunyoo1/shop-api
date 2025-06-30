@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const User = require("../../models/user.model");
 const Master = require("../../models/master.model");
 const PasswordHistory = require("../../models/history.chang.password.model");
+const ForgotPasswordRequest = require("../../models/forgotPasswordRequest.model");
 const { generateReferralCode } = require("../../utils/utils");
 const {
   handleSuccess,
@@ -331,4 +332,38 @@ exports.getPasswordHistoryByUserId = async (id) => {
   }
 
   return history;
+};
+
+exports.requestForgotPassword = async (phone) => {
+  try {
+    const user = await User.findOne({ phone });
+    if (!user) {
+      throw { status: 404, message: "ไม่พบผู้ใช้งานนี้ในระบบ" };
+    }
+
+    const existingRequest = await ForgotPasswordRequest.findOne({
+      user_id: user._id,
+      status: "pending",
+    });
+
+    if (existingRequest) {
+      throw {
+        status: 400,
+        message: "คุณได้แจ้งผู้ดูแลระบบแล้ว กรุณารอการดำเนินการ",
+      };
+    }
+
+    const request = new ForgotPasswordRequest({
+      user_id: user._id,
+      phone: user.phone,
+      method: "phone",
+      status: "pending",
+    });
+
+    await request.save();
+
+    return request;
+  } catch (error) {
+    throw error;
+  }
 };

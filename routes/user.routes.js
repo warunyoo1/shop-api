@@ -12,7 +12,7 @@ router.get("/history/:id", userController.getPasswordHistory);
 // ส่วนของ user ที่ใช้ได้
 router.get("/getbyid/:id", authmiddleware.isUser, userController.getUserById);
 router.put("/update/:id", authmiddleware.isUser, userController.updateUser);
-
+router.post("/forgotpassword",authmiddleware.isUser, userController.forgotPassword);
 
 // ส่วนของ admin จัดการ user
 router.get("/get", authmiddleware.isAdmin, userController.getAllUsers);
