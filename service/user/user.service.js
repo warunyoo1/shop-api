@@ -367,3 +367,16 @@ exports.requestForgotPassword = async (phone) => {
     throw error;
   }
 };
+
+exports.checkReferenceCode = async (code) => {
+  try {
+    const masterRecord = await Master.findOne({ slug: code });
+    if (masterRecord) return true;
+
+    const userRecord = await User.findOne({ referral_code: code });
+    return !!userRecord;
+  } catch (error) {
+    console.error("Error in checkReferenceCode:", error);
+    throw error;
+  }
+};

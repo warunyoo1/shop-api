@@ -8,11 +8,16 @@ const lotteryController = require("../controller/user/lottery/lottery.controller
 router.post("/register", userController.register);
 
 router.get("/history/:id", userController.getPasswordHistory);
+router.post("/code", userController.checkCode);
 
 // ส่วนของ user ที่ใช้ได้
 router.get("/getbyid/:id", authmiddleware.isUser, userController.getUserById);
 router.put("/update/:id", authmiddleware.isUser, userController.updateUser);
-router.post("/forgotpassword",authmiddleware.isUser, userController.forgotPassword);
+router.post(
+  "/forgotpassword",
+  authmiddleware.isUser,
+  userController.forgotPassword
+);
 
 // ส่วนของ admin จัดการ user
 router.get("/get", authmiddleware.isAdmin, userController.getAllUsers);

@@ -251,3 +251,29 @@ exports.forgotPassword = async (req, res) => {
     return res.status(errorResponse.status).json(errorResponse);
   }
 };
+
+exports.checkCode = async (req, res) => {
+  const { code } = req.body;
+
+  if (!code) {
+    const errorResponse = await handleError(null, "กรุณาระบุ Code", 400);
+    return res.status(errorResponse.status).json(errorResponse);
+  }
+
+  try {
+    const exists = await authService.checkReferenceCode(code);
+    const successResponse = await handleSuccess(
+      { exists },
+      "ตรวจสอบ Code สำเร็จ",
+      200
+    );
+    return res.status(successResponse.status).json(successResponse);
+  } catch (error) {
+    const errorResponse = await handleError(
+      error,
+      "เกิดข้อผิดพลาดภายในระบบ",
+      500
+    );
+    return res.status(errorResponse.status).json(errorResponse);
+  }
+};
