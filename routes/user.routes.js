@@ -35,7 +35,7 @@ router.get("/lottery", lotteryController.getLotteryUserSets);
 // ส่วนของ user bet
 router.post("/bet", authmiddleware.isUser, betController.createUserBet);
 router.post("/cancel/:id", authmiddleware.isUser, betController.cancelUserBet);
-router.get("/bet/:id", authmiddleware.isUser, betController.getUserBetsById);
+router.get("/bet", authmiddleware.isUser, betController.getUserBetsById);
 router.get("/bet/find/all", authmiddleware.isUser, betController.getUserBetAll);
 
 module.exports = router;
