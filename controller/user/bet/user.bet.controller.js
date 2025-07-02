@@ -27,8 +27,13 @@ exports.createUserBet = async (req, res) => {
 exports.getUserBetsById = async (req, res) => {
   try {
     const user_id = req.user._id;
+    const { lottery_set_id, status } = req.query;
 
-    const bets = await userBetService.getUserBetsById(user_id);
+    const bets = await userBetService.getUserBetsById(
+      user_id,
+      lottery_set_id,
+      status
+    );
 
     const response = await handleSuccess({ bets }, "ดึงข้อมูลการแทงหวยสำเร็จ");
     return res.status(response.status).json(response);

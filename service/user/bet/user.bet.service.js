@@ -66,11 +66,20 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
   }
 };
 
-exports.getUserBetsById = async function (user_id) {
+exports.getUserBetsById = async function (user_id, lottery_set_id, status) {
   try {
     if (!user_id) throw new Error("user_id ต้องไม่ว่าง");
 
-    const bets = await UserBet.find({ user_id })
+    const filter = { user_id };
+
+    if (lottery_set_id) {
+      filter.lottery_set_id = lottery_set_id;
+    }
+    if (status) {
+      filter.status = status;
+    }
+
+    const bets = await UserBet.find(filter)
       .populate("lottery_set_id")
       .populate("bets.betting_option_id")
       .sort({ bet_date: -1 });
