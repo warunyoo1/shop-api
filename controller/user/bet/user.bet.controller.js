@@ -35,7 +35,7 @@ exports.getUserBetsById = async (req, res) => {
       status
     );
 
-    const response = await handleSuccess({ bets }, "ดึงข้อมูลการแทงหวยสำเร็จ");
+    const response = await handleSuccess(bets, "ดึงข้อมูลการแทงหวยสำเร็จ");
     return res.status(response.status).json(response);
   } catch (error) {
     const response = await handleError(

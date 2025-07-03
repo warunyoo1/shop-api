@@ -79,12 +79,12 @@ exports.getUserBetsById = async function (user_id, lottery_set_id, status) {
       filter.status = status;
     }
 
-    const bets = await UserBet.find(filter)
+    // const bets
+
+    return await UserBet.find(filter)
       .populate("lottery_set_id")
       .populate("bets.betting_option_id")
       .sort({ bet_date: -1 });
-
-    return bets;
   } catch (error) {
     console.error("❌ getUserBetsById error:", error.message);
     throw error;
