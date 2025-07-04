@@ -12,6 +12,9 @@ exports.createCredit = async function ({
   amount,
   channel,
   description,
+  addcredit_admin_id,
+  addcredit_admin_name,
+  addcredit_admin_role,
 }) {
   try{
     // เช็คว่า user_id มีอยู่ในฐานข้อมูลหรือไม่
@@ -107,7 +110,13 @@ exports.createCredit = async function ({
       created_at: new Date(),
       updated_at: new Date()
     });
-    
+
+     // ดู token ที่ middle ส่งมา 
+    if(addcredit_admin_id && addcredit_admin_name && addcredit_admin_role){
+      newCredit.addcredit_admin_id = addcredit_admin_id;
+      newCredit.addcredit_admin_name = addcredit_admin_name;
+      newCredit.addcredit_admin_role = addcredit_admin_role;
+    }
     // บันทึกข้อมูล
     await newCredit.save();
 

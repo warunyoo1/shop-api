@@ -10,6 +10,7 @@ const CreditSchema = new Schema(
       ref: "User",
       required: true,
     },
+   
     promotion_id: {
       type: Schema.Types.ObjectId,
       ref: "Promotion",
@@ -42,8 +43,18 @@ const CreditSchema = new Schema(
       enum: ["pending", "success", "failed"],
       default: "pending",
     },
-    
-
+    addcredit_admin_id: {
+      type: Schema.Types.ObjectId,
+      required: false,
+    },
+    addcredit_admin_name: {
+      type: String,
+      required: false,
+    },
+    addcredit_admin_role:{
+      type: String,
+      enum: ["admin", "superadmin",""],
+    } 
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

@@ -44,6 +44,18 @@ const WithdrawalSchema = new Schema(
       type: String,
       default: null,
     },
+    addcredit_admin_id: {
+      type: Schema.Types.ObjectId,
+      required: false,
+    },
+    addcredit_admin_name: {
+      type: String,
+      required: false,
+    },
+    addcredit_admin_role:{
+      type: String,
+      enum: ["admin", "superadmin",""],
+    } 
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

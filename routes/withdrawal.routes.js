@@ -14,6 +14,11 @@ router.get("/getbyid/:id", withdrawalController.getWithdrawalById);
 router.put("/approve/:id", withdrawalController.approveWithdrawal);
 router.put("/reject/:id", withdrawalController.rejectWithdrawal);
 router.put("/complete/:id", withdrawalController.completeWithdrawal);
+
+router.post("/deduct-admin/", withdrawalController.deductFromAdmin);
+
 router.delete("/delete/:id", withdrawalController.deleteWithdrawal);
 
+ //หักเงินจาก admin 
+ 
 module.exports = router; 

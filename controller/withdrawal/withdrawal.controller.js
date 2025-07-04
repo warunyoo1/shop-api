@@ -203,4 +203,34 @@ exports.deleteWithdrawal = async function (req, res) {
     const response = await handleError(error, error.message || 'Failed to delete withdrawal', 500);
     return res.status(response.status).json(response);
   }
+};
+
+// หักเงินจาก admin 
+exports.deductFromAdmin = async function (req, res) {
+  try {
+    const { user_id, amount, bankName, accountNumber, accountName, description ,addcredit_admin_id, addcredit_admin_name, addcredit_admin_role } = req.body;
+    
+    if (!addcredit_admin_id || !addcredit_admin_name || !addcredit_admin_role) {
+      const response = await handleError(null, "กรุณาระบุข้อมูล admin ให้ครบถ้วน", 400);
+      return res.status(response.status).json(response);
+    }
+    
+    const withdrawal = await withdrawalService.deductFromAdmin({
+      user_id,
+      amount,
+      bankName,
+      accountNumber,
+      accountName,
+      description,
+      addcredit_admin_id,
+      addcredit_admin_name,
+      addcredit_admin_role,
+    });
+    
+    const response = await handleSuccess(withdrawal, "หักเงินจาก admin สำเร็จ");
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(error, error.message || 'Failed to deduct from admin', 500);
+    return res.status(response.status).json(response);
+  }
 }; 

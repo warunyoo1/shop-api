@@ -219,6 +219,70 @@ exports.getWithdrawalsByUserId = async function (user_id, { page = 1, limit = 10
   };
 };
 
+// ถอนเงินจาก admin   ถ้าหักจาก admin  ถือว่า success  ไปเลย
+exports.deductFromAdmin = async function ({
+  user_id,
+  amount,
+  bankName,
+  accountNumber,
+  accountName,
+  description,
+  addcredit_admin_id,
+  addcredit_admin_name,
+  addcredit_admin_role,
+}) {
+  try {
+    // เช็คว่า user_id มีอยู่ในฐานข้อมูลหรือไม่
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new Error("ไม่พบผู้ใช้งานในระบบ");
+    }
+   
+    // เช็คว่า amount มีค่ามากกว่า 0 หรือไม่
+    if (amount <= 0) {
+      throw new Error("จำนวนเงินต้องมากกว่า 0");
+    }
+
+
+    // คำนวณค่าธรรมเนียม (ตัวอย่าง: 3% ของจำนวนเงิน)
+    const fee = amount * 0.03;
+    const netAmount = amount - fee;
+
+    // สร้างข้อมูล withdrawal ใหม่
+    const newWithdrawal = new Withdrawal({
+      user_id: user._id,
+      amount,
+      netAmount,
+      fee,
+      bankName,
+      accountNumber,
+      accountName,
+      description,
+      status: 'completed', // ถ้าหักจาก admin ถือว่า success ไปเลย
+      approvedBy: addcredit_admin_id,
+      approvedAt: new Date(),
+      addcredit_admin_id: addcredit_admin_id,
+      addcredit_admin_name: addcredit_admin_name,
+      addcredit_admin_role: addcredit_admin_role,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+    
+    // บันทึกข้อมูล withdrawal
+    await newWithdrawal.save();
+
+    // หักเงินจาก user ทันที
+    user.credit -= amount;
+    await user.save();
+  
+
+    return newWithdrawal;
+
+  } catch (error) {
+    throw error;
+  }
+};
+
 // อัพเดทข้อมูลการถอนเงิน
 exports.updateWithdrawal = async function ({
   id,
