@@ -62,7 +62,7 @@ exports.getAllCredits = async function (req, res) {
     return res.status(response.status).json(response);
   }
 };
-
+ 
 exports.getCreditsByUserId = async function (req, res) {
   try {
     const { user_id } = req.params;

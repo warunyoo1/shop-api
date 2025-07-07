@@ -229,13 +229,15 @@ exports.cancelCredit = async function ({
 
 // ดึงตาม id
 exports.getCreditById = async function (id) {
-  return await Credit.findOne({ _id: id });
+  return await Credit.findOne({ _id: id })
+    .populate('promotion_id');
 };
 
 // ดึงทั้งหมด
 exports.getAllCredits = async function ({ page = 1, limit = 10 } = {}) {
   const skip = (page - 1) * limit;
   const credits = await Credit.find()
+    .populate('promotion_id')
     .sort({ created_at: -1 })
     .skip(skip)
     .limit(limit);
@@ -259,12 +261,14 @@ exports.getCreditsByUserId = async function (user_id, { page = 1, limit = 10, st
     const skip = (page - 1) * limit;
     
     // สร้าง query object
+    console.log(user_id);
     let query = { user_id };
     if (status) {
       query.status = status;
     }
 
     const credits = await Credit.find(query)
+      .populate('promotion_id')
       .sort({ created_at: -1 })
       .skip(skip)
       .limit(limit);
@@ -290,7 +294,7 @@ exports.deleteCredit = async function ({
   id,
 }) {
   try {
-    const credit = await Credit.findById(id);
+    const credit = await Credit.findById(id).populate('promotion_id');
     if (!credit) {
       throw new Error("ไม่พบข้อมูล credit");
     }
