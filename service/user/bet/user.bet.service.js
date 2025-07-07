@@ -79,12 +79,31 @@ exports.getUserBetsById = async function (user_id, lottery_set_id, status) {
       filter.status = status;
     }
 
-    // const bets
-
-    return await UserBet.find(filter)
-      .populate("lottery_set_id")
-      .populate("bets.betting_option_id")
+    const bets = await UserBet.find(filter)
+      .select("-bets -created_at -updated_at -user_id")
+      .populate({
+        path: "lottery_set_id",
+        select: "-betting_options -closeTime -openTime",
+        populate: {
+          path: "lottery_type_id",
+          select: "name -_id",
+        },
+      })
       .sort({ bet_date: -1 });
+
+    const transformedBets = bets.map((bet) => {
+      const betObj = bet.toObject();
+
+      if (betObj.lottery_set_id && betObj.lottery_set_id.lottery_type_id) {
+        betObj.lottery_set_id.lottery_type_name =
+          betObj.lottery_set_id.lottery_type_id.name;
+        delete betObj.lottery_set_id.lottery_type_id;
+      }
+
+      return betObj;
+    });
+
+    return transformedBets;
   } catch (error) {
     console.error("❌ getUserBetsById error:", error.message);
     throw error;
@@ -97,7 +116,7 @@ exports.getAllUserBets = async function (page = 1, limit = 10) {
     const total = await UserBet.countDocuments();
     const bets = await UserBet.find()
       .populate("lottery_set_id")
-      .populate("bets.betting_option_id")
+      // .populate("bets.betting_option_id")
       .sort({ bet_date: -1 })
       .skip(skip)
       .limit(limit);
