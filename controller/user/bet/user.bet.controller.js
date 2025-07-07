@@ -14,13 +14,12 @@ exports.createUserBet = async (req, res) => {
       lottery_set_id,
       bets
     );
-
-    return res.status(201).json({ message: "แทงหวยสำเร็จ", userBet });
+    const response = await handleSuccess(userBet, "แทงหวยสำเร็จ", 201);
+    return res.status(201).json(response);
   } catch (error) {
     console.error(error);
-    return res
-      .status(400)
-      .json({ error: error.message || "เกิดข้อผิดพลาดในการแทงหวย" });
+    const response = await handleError(error, "เกิดข้อผิดพลาดในการแทงหวย", 400);
+    return res.status(response.status).json(response);
   }
 };
 
