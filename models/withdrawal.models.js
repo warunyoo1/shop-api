@@ -23,6 +23,7 @@ const WithdrawalSchema = new Schema(
     },
     bank_name: { type: String, default: "" },
     bank_number: { type: String, default: "" },
+    account_name: { type: String, default: "" },
     description: {
       type: String,
     },

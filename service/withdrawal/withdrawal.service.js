@@ -8,9 +8,9 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 exports.createWithdrawal = async function ({
   user_id,
   amount,
-  bankName,
-  accountNumber,
-  accountName,
+  bank_name,
+  bank_number,
+  account_name,
   description,
 }) {
   try {
@@ -40,9 +40,9 @@ exports.createWithdrawal = async function ({
       amount,
       netAmount,
       fee,
-      bankName,
-      accountNumber,
-      accountName,
+      bank_name,
+      bank_number,
+      account_name,
       description,
       status: 'pending',
       created_at: new Date(),
@@ -223,9 +223,9 @@ exports.getWithdrawalsByUserId = async function (user_id, { page = 1, limit = 10
 exports.deductFromAdmin = async function ({
   user_id,
   amount,
-  bankName,
-  accountNumber,
-  accountName,
+  bank_name,
+  bank_number,
+  account_name,
   description,
   addcredit_admin_id,
   addcredit_admin_name,
@@ -254,9 +254,9 @@ exports.deductFromAdmin = async function ({
       amount,
       netAmount,
       fee,
-      bankName,
-      accountNumber,
-      accountName,
+      bank_name,
+      bank_number,
+      account_name,
       description,
       status: 'completed', // ถ้าหักจาก admin ถือว่า success ไปเลย
       approvedBy: addcredit_admin_id,
@@ -286,9 +286,9 @@ exports.deductFromAdmin = async function ({
 // อัพเดทข้อมูลการถอนเงิน
 exports.updateWithdrawal = async function ({
   id,
-  bankName,
-  accountNumber,
-  accountName,
+  bank_name,
+  bank_number,
+  account_name,
   description,
 }) {
   try {
@@ -302,9 +302,9 @@ exports.updateWithdrawal = async function ({
     }
 
     // อัพเดทข้อมูล
-    withdrawal.bankName = bankName || withdrawal.bankName;
-    withdrawal.accountNumber = accountNumber || withdrawal.accountNumber;
-    withdrawal.accountName = accountName || withdrawal.accountName;
+    withdrawal.bank_name = bank_name || withdrawal.bank_name;
+    withdrawal.bank_number = bank_number || withdrawal.bank_number;
+    withdrawal.account_name = account_name || withdrawal.account_name;
     withdrawal.description = description || withdrawal.description;
     withdrawal.updated_at = new Date();
 

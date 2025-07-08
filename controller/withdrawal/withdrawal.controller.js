@@ -4,14 +4,14 @@ const { handleSuccess, handleError } = require("../../utils/responseHandler");
 // สร้างคำขอถอนเงิน
 exports.createWithdrawal = async function (req, res) {
   try {
-    const { user_id, amount, bankName, accountNumber, accountName, description } = req.body;
+    const { user_id, amount, bank_name, bank_number, account_name, description } = req.body;
     
     const withdrawal = await withdrawalService.createWithdrawal({
       user_id,
       amount,
-      bankName,
-      accountNumber,
-      accountName,
+      bank_name,
+      bank_number,
+      account_name,
       description,
     });
     
@@ -157,13 +157,13 @@ exports.completeWithdrawal = async function (req, res) {
 exports.updateWithdrawal = async function (req, res) {
   try {
     const { id } = req.params;
-    const { bankName, accountNumber, accountName, description } = req.body;
+    const { bank_name, bank_number, account_name, description } = req.body;
     
     const withdrawal = await withdrawalService.updateWithdrawal({
       id,
-      bankName,
-      accountNumber,
-      accountName,
+      bank_name,
+      bank_number,
+      account_name,
       description,
     });
     
@@ -208,7 +208,7 @@ exports.deleteWithdrawal = async function (req, res) {
 // หักเงินจาก admin 
 exports.deductFromAdmin = async function (req, res) {
   try {
-    const { user_id, amount, bankName, accountNumber, accountName, description ,addcredit_admin_id, addcredit_admin_name, addcredit_admin_role } = req.body;
+    const { user_id, amount, bank_name, bank_number, account_name, description, addcredit_admin_id, addcredit_admin_name, addcredit_admin_role } = req.body;
     
     if (!addcredit_admin_id || !addcredit_admin_name || !addcredit_admin_role) {
       const response = await handleError(null, "กรุณาระบุข้อมูล admin ให้ครบถ้วน", 400);
@@ -218,9 +218,9 @@ exports.deductFromAdmin = async function (req, res) {
     const withdrawal = await withdrawalService.deductFromAdmin({
       user_id,
       amount,
-      bankName,
-      accountNumber,
-      accountName,
+      bank_name,
+      bank_number,
+      account_name,
       description,
       addcredit_admin_id,
       addcredit_admin_name,
