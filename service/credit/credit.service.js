@@ -238,6 +238,7 @@ exports.getAllCredits = async function ({ page = 1, limit = 10 } = {}) {
   const skip = (page - 1) * limit;
   const credits = await Credit.find()
     .populate('promotion_id')
+    .populate('user_id')
     .sort({ created_at: -1 })
     .skip(skip)
     .limit(limit);
