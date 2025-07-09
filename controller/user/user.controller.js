@@ -277,3 +277,15 @@ exports.checkCode = async (req, res) => {
     return res.status(errorResponse.status).json(errorResponse);
   }
 };
+
+// ค้นหา user สำหรับ select search
+exports.searchUsers = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const result = await userService.searchUsers(search);
+    return res.status(result.status).json(result);
+  } catch (error) {
+    const response = await handleError(error);
+    return res.status(response.status).json(response);
+  }
+};

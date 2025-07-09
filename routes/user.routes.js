@@ -5,6 +5,9 @@ const betController = require("../controller/user/bet/user.bet.controller");
 const authmiddleware = require("../middleware/authadmin.middleware");
 const lotteryController = require("../controller/user/lottery/lottery.controller");
 
+// ค้นหา user สำหรับ select search
+router.get("/search", userController.searchUsers);
+
 router.post("/register", userController.register);
 
 router.get("/history/:id", userController.getPasswordHistory);

@@ -380,3 +380,29 @@ exports.checkReferenceCode = async (code) => {
     throw error;
   }
 };
+
+// ค้นหา user สำหรับ select search
+exports.searchUsers = async (searchTerm) => {
+  try {
+    if (!searchTerm) {
+      return handleSuccess([], "ดึงข้อมูล User สำเร็จ");
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: searchTerm, $options: "i" } },
+        { phone: { $regex: searchTerm, $options: "i" } },
+        { full_name: { $regex: searchTerm, $options: "i" } }
+      ]
+    })
+    .select("_id username phone full_name")
+    .limit(10);
+
+    return handleSuccess(users, "ดึงข้อมูล User สำเร็จ");
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+
+// 
