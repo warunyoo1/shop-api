@@ -392,7 +392,8 @@ exports.searchUsers = async (searchTerm) => {
       $or: [
         { username: { $regex: searchTerm, $options: "i" } },
         { phone: { $regex: searchTerm, $options: "i" } },
-        { full_name: { $regex: searchTerm, $options: "i" } }
+        { full_name: { $regex: searchTerm, $options: "i" } },
+        { credit: { $regex: searchTerm, $options: "i" } },
       ]
     })
     .select("_id username phone full_name")
