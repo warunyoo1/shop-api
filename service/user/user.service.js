@@ -399,9 +399,9 @@ exports.searchUsers = async (searchTerm) => {
     };
 
     // ถ้าเป็นตัวเลข เพิ่มการค้นหา credit
-    if (isNumber) {
-      searchQuery.$or.push({ credit: Number(searchTerm) });
-    }
+    // if (isNumber) {
+    //   searchQuery.$or.push({ credit: Number(searchTerm) });
+    // }
 
     const users = await User.find(searchQuery)
       .select("_id username phone full_name credit")
