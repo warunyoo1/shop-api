@@ -168,32 +168,54 @@ exports.getWithdrawalById = async (id) => {
 };
 
 // ดึงข้อมูลทั้งหมด
-exports.getAllWithdrawals = async function ({ page = 1, limit = 10, status } = {}) {
-  const skip = (page - 1) * limit;
-  
-  let query = {};
-  if (status) {
-    query.status = status;
+exports.getAllWithdrawals = async function ({ page = 1, limit = 10, status, startDate, endDate } = {}) {
+  try {
+    // สร้างเงื่อนไขการค้นหา
+    let query = {};
+
+    // เพิ่มเงื่อนไขการค้นหาตามสถานะ
+    if (status) {
+      query.status = status;
+    }
+
+    // เพิ่มเงื่อนไขการค้นหาตามวันที่
+    if (startDate && endDate) {
+      // ค้นหาระหว่างวันที่
+      query.created_at = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else if (startDate) {
+      // ค้นหาวันเดียว
+      const start = new Date(startDate);
+      const end = new Date(startDate);
+      end.setHours(23, 59, 59, 999);
+      query.created_at = {
+        $gte: start,
+        $lte: end
+      };
+    }
+
+    const withdrawals = await Withdrawal.find(query)
+      .populate('user_id')
+      .sort({ created_at: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const total = await Withdrawal.countDocuments(query);
+
+    return {
+      data: withdrawals,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    throw error;
   }
-
-  const withdrawals = await Withdrawal.find(query)
-    .populate('user_id', 'username')
-    .populate('approvedBy', 'username')
-    .sort({ created_at: -1 })
-    .skip(skip)
-    .limit(limit);
-
-  const total = await Withdrawal.countDocuments(query);
-
-  return {
-    data: withdrawals,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
 };
 
 // ดึงข้อมูลการถอนเงินของ user

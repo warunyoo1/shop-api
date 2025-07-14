@@ -43,11 +43,13 @@ exports.getCreditsByID = async function (req, res) {
 
 exports.getAllCredits = async function (req, res) {
   try {
-    const { page = 1, limit = 10 } = req.query || {};
+    const { page = 1, limit = 10, startDate, endDate } = req.query || {};
 
     const result = await creditService.getAllCredits({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
+      startDate,
+      endDate,
     });
 
     const response = await handleSuccess(

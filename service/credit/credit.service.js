@@ -234,16 +234,37 @@ exports.getCreditById = async function (id) {
 };
 
 // ดึงทั้งหมด
-exports.getAllCredits = async function ({ page = 1, limit = 10 } = {}) {
+exports.getAllCredits = async function ({ page = 1, limit = 10, startDate, endDate } = {}) {
   const skip = (page - 1) * limit;
-  const credits = await Credit.find()
+  
+  // สร้างเงื่อนไขการค้นหา
+  let dateFilter = {};
+  
+  if (startDate && endDate) {
+    // ค้นหาระหว่างวันที่
+    dateFilter.created_at = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate)
+    };
+  } else if (startDate) {
+    // ค้นหาวันเดียว
+    const start = new Date(startDate);
+    const end = new Date(startDate);
+    end.setHours(23, 59, 59, 999);
+    dateFilter.created_at = {
+      $gte: start,
+      $lte: end
+    };
+  }
+
+  const credits = await Credit.find(dateFilter)
     .populate('promotion_id')
     .populate('user_id')
     .sort({ created_at: -1 })
     .skip(skip)
     .limit(limit);
 
-  const total = await Credit.countDocuments();
+  const total = await Credit.countDocuments(dateFilter);
 
   return {
     data: credits,

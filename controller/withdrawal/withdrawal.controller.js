@@ -50,12 +50,14 @@ exports.getWithdrawalById = async function (req, res) {
 // ดึงข้อมูลการถอนเงินทั้งหมด
 exports.getAllWithdrawals = async function (req, res) {
   try {
-    const { page = 1, limit = 10, status } = req.query || {};
+    const { page = 1, limit = 10, status, startDate, endDate } = req.query || {};
 
     const result = await withdrawalService.getAllWithdrawals({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       status,
+      startDate,
+      endDate,
     });
 
     const response = await handleSuccess(
