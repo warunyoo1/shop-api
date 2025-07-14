@@ -242,15 +242,17 @@ exports.getAllCredits = async function ({ page = 1, limit = 10, startDate, endDa
   
   if (startDate && endDate) {
     // ค้นหาระหว่างวันที่
+    const start = new Date(startDate + "T00:00:00.000Z");
+    const end = new Date(endDate + "T23:59:59.999Z");
     dateFilter.created_at = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate)
+      $gte: start,
+      $lte: end
     };
+  
   } else if (startDate) {
     // ค้นหาวันเดียว
-    const start = new Date(startDate);
-    const end = new Date(startDate);
-    end.setHours(23, 59, 59, 999);
+    const start = new Date(startDate + "T00:00:00.000Z");
+    const end = new Date(startDate + "T23:59:59.999Z");
     dateFilter.created_at = {
       $gte: start,
       $lte: end
