@@ -388,16 +388,24 @@ exports.searchUsers = async (searchTerm) => {
       return handleSuccess([], "ดึงข้อมูล User สำเร็จ");
     }
 
-    const users = await User.find({
+    // ถ้า searchTerm เป็นตัวเลข จะค้นหา credit ด้วย
+    const isNumber = !isNaN(searchTerm);
+    const searchQuery = {
       $or: [
         { username: { $regex: searchTerm, $options: "i" } },
         { phone: { $regex: searchTerm, $options: "i" } },
-        { full_name: { $regex: searchTerm, $options: "i" } },
-        { credit: { $regex: searchTerm, $options: "i" } },
+        { full_name: { $regex: searchTerm, $options: "i" } }
       ]
-    })
-    .select("_id username phone full_name")
-    .limit(10);
+    };
+
+    // ถ้าเป็นตัวเลข เพิ่มการค้นหา credit
+    if (isNumber) {
+      searchQuery.$or.push({ credit: Number(searchTerm) });
+    }
+
+    const users = await User.find(searchQuery)
+      .select("_id username phone full_name credit")
+      .limit(10);
 
     return handleSuccess(users, "ดึงข้อมูล User สำเร็จ");
   } catch (error) {
