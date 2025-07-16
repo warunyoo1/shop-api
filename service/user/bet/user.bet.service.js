@@ -19,6 +19,7 @@ exports.createUserBet = async function (user_id, lottery_set_id, bets) {
     const bettingOptionMap = {};
     lotterySet.betting_options.forEach((opt) => {
       bettingOptionMap[String(opt._id)] = {
+        betting_type_id: opt.betting_type_id,
         min_bet: opt.min_bet,
         max_bet: opt.max_bet,
       };
@@ -227,6 +228,7 @@ function validateAndCalculateBets(bets, validOptionIds, bettingOptionMap) {
 
       bet.bet_amount = betAmount;
       bet.payout_amount = betAmount * bet.payout_rate;
+      bet.betting_type_id = optionConfig.betting_type_id;
 
       console.log(
         `✅ bet_amount = ${bet.bet_amount}, payout_rate = ${bet.payout_rate}, payout_amount = ${bet.payout_amount}`
@@ -358,7 +360,7 @@ exports.getUserBetByPk = async function (bet_id) {
         betsByType[typeId].numbers.push({
           number: num.number,
           amount: num.amount,
-          is_won: num.is_won || false,
+          is_won: num.is_won || null,
           payout: num.payout || 0,
         });
       }

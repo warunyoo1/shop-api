@@ -18,8 +18,13 @@ const userBetSchema = new mongoose.Schema({
       betting_option_id: {
         type: mongoose.Schema.Types.ObjectId,
       },
+      betting_type_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "BettingTypes",
+      },
       numbers: [
         {
+          is_won: { type: Boolean, default: null },
           number: { type: String, required: true },
           amount: { type: Number, required: true },
         },
