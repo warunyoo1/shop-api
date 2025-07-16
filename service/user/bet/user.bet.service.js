@@ -2,6 +2,7 @@ const UserBet = require("../../../models/userBetSchema.models");
 const User = require("../../../models/user.model");
 const LotterySet = require("../../../models/lotterySets.model");
 const UserTransaction = require("../../../models/user.transection.model");
+const BettingType = require("../../../models/bettingTypes.model");
 const mongoose = require("mongoose");
 
 exports.createUserBet = async function (user_id, lottery_set_id, bets) {
@@ -280,6 +281,111 @@ exports.cancelUserBet = async function (user_id, bet_id) {
     return userBet;
   } catch (error) {
     console.error("❌ cancelUserBet error:", error.message);
+    throw error;
+  }
+};
+
+exports.getUserBetByPk = async function (bet_id) {
+  try {
+    if (!bet_id) throw new Error("bet_id ต้องไม่ว่าง");
+    console.log("🔍 getUserBetByPk bet_id:", bet_id);
+
+    const bet = await UserBet.findById(bet_id)
+      .select("-created_at -updated_at -user_id")
+      .populate({
+        path: "lottery_set_id",
+        select: "name betting_options lottery_type_id",
+        populate: {
+          path: "lottery_type_id",
+          select: "name -_id",
+        },
+      });
+
+    if (!bet) return null;
+
+    const betObj = bet.toObject();
+    const lotterySet = betObj.lottery_set_id;
+    const lottery_type_name = lotterySet?.lottery_type_id?.name || null;
+
+    const optionToTypeMap = {};
+    if (lotterySet?.betting_options) {
+      for (const opt of lotterySet.betting_options) {
+        optionToTypeMap[opt._id.toString()] = {
+          betting_type_id: opt.betting_type_id,
+          payout_rate: opt.payout_rate,
+        };
+      }
+    }
+
+    const bettingTypeIds = [
+      ...new Set(Object.values(optionToTypeMap).map((v) => v.betting_type_id)),
+    ];
+
+    const bettingTypes = await BettingType.find({
+      _id: { $in: bettingTypeIds },
+    }).select("name");
+
+    const typeIdToInfo = {};
+    for (const bt of bettingTypes) {
+      typeIdToInfo[bt._id.toString()] = {
+        _id: bt._id,
+        name: bt.name,
+      };
+    }
+
+    const betsByType = {};
+
+    for (const betItem of betObj.bets || []) {
+      const optId = betItem.betting_option_id;
+      const mapData = optionToTypeMap[optId];
+      if (!mapData) continue;
+
+      const typeId = mapData.betting_type_id.toString();
+      const payout_rate = betItem.payout_rate || mapData.payout_rate || 0;
+
+      if (!betsByType[typeId]) {
+        betsByType[typeId] = {
+          betting_type: typeIdToInfo[typeId] || {
+            _id: typeId,
+            name: "ไม่พบชื่อ",
+          },
+          payout_rate,
+          numbers: [],
+        };
+      }
+
+      for (const num of betItem.numbers || []) {
+        betsByType[typeId].numbers.push({
+          number: num.number,
+          amount: num.amount,
+          is_won: num.is_won || false,
+          payout: num.payout || 0,
+        });
+      }
+    }
+
+    const transformedBets = Object.values(betsByType);
+    const responseData = {
+      _id: betObj._id,
+      lottery_set_id: {
+        name: lotterySet.name,
+        lottery_type_name,
+      },
+      bet_date: betObj.bet_date,
+      total_bet_amount: betObj.total_bet_amount,
+      payout_amount: betObj.payout_amount,
+      status: betObj.status,
+      bets: transformedBets,
+    };
+
+    console.log(
+      "✅ Final transformed data:",
+      JSON.stringify(responseData, null, 2)
+    );
+
+    return responseData;
+  } catch (error) {
+    console.error("❌ getUserBetByPk error:", error.message);
     throw error;
   }
 };

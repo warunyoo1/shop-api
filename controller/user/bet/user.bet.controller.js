@@ -96,3 +96,25 @@ exports.cancelUserBet = async (req, res) => {
     return res.status(response.status).json(response);
   }
 };
+
+exports.getUserBetByPk = async (req, res) => {
+  try {
+    const bet_id = req.params.id;
+
+    const bet = await userBetService.getUserBetByPk( bet_id);
+
+    if (!bet) {
+      return res.status(404).json({ message: "ไม่พบข้อมูลการแทงหวย" });
+    }
+
+    const response = await handleSuccess(bet, "ดึงข้อมูลการแทงหวยสำเร็จ");
+    return res.status(response.status).json(response);
+  } catch (error) {
+    const response = await handleError(
+      error,
+      "เกิดข้อผิดพลาดในการดึงข้อมูลการแทงหวย",
+      400
+    );
+    return res.status(response.status).json(response);
+  }
+};

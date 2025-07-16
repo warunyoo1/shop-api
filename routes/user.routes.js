@@ -39,6 +39,7 @@ router.get("/lottery", lotteryController.getLotteryUserSets);
 router.post("/bet", authmiddleware.isUser, betController.createUserBet);
 router.post("/cancel/:id", authmiddleware.isUser, betController.cancelUserBet);
 router.get("/bet", authmiddleware.isUser, betController.getUserBetsById);
+router.get("/bet/:id", authmiddleware.isUser, betController.getUserBetByPk);
 router.get("/bet/find/all", authmiddleware.isUser, betController.getUserBetAll);
 
 module.exports = router;
